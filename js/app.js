@@ -313,6 +313,7 @@ function seek(t) {
   if (P.motion) { poseAt(t); follow(1); }
 }
 function select(p, autoplay) {           // everything before the first await runs inside the tap
+  if (L) L.stop();
   pause();
   Object.assign(P, { prog: p, motion: null, t: 0, ended: false, clock: 'media' });
   if (P.route === 'element') setSrc(p.audio);
@@ -402,6 +403,62 @@ function updateUI(t, force = false) {
   $('time').textContent = `${mmss(t)} / ${mmss(end)}`;
   $('fill').style.width = `${(t / end) * 100}%`;
   $('playhead').style.left = `calc(4.5rem + 10px + (100% - 4.5rem - 10px) * ${t / end})`;
+}
+
+// ---------------------------------------------------------------- live mode (js/live.js runs the session)
+let L = null;                            // the live session's controller while one is on
+let liveDrawn = '';
+function liveBegin(ctrl) {
+  pauseVideos();
+  pause();
+  L = ctrl;
+  lastUI = '';
+  liveDrawn = '';
+  $('over').hidden = true;
+  if (narrow.matches) stageEl.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+}
+function liveEnd() {
+  L = null;
+  $('over').hidden = false;
+  if (P.prog) { programmeChanged(); updateUI(now(), true); }
+  if (P.motion) { poseAt(now()); follow(1); }
+}
+function liveUI(t) {
+  const playing = L.playing(), robot = L.robot(t), hint = L.hint(t);
+  const mode = playing ? 'pause' : 'play', label = playing ? 'Pause the music' : 'Play the music';
+  const key = ['live', L.title, L.music(), robot, mode, hint].join('|');
+  if (key !== lastUI) {
+    lastUI = key;
+    $('title').textContent = L.title;
+    $('cap-music-text').textContent = L.music();
+    $('cap-music').classList.toggle('on', playing);
+    $('cap-robot-text').textContent = `Robot: ${robot}`;
+    const main = $('main');
+    main.innerHTML = ICON[mode];
+    main.setAttribute('aria-label', label);
+    main.title = label;
+    main.disabled = false;
+    setHint(hint);
+  }
+  const span = L.max, segs = L.segments(t), drawn = `${segs.length}|${Math.round(t * 4)}`;
+  if (drawn !== liveDrawn) {             // music on/off so far; redrawn four times a second at most
+    liveDrawn = drawn;
+    const el = $('progress');
+    el.replaceChildren(...segs.map((s) => {
+      const d = document.createElement('div');
+      d.className = 'seg music';
+      d.style.left = pct(s.t0, span);
+      d.style.width = pct(Math.max(0, s.t1 - s.t0), span);
+      d.style.background = 'var(--song-1)';
+      return d;
+    }));
+    const fill = document.createElement('div');
+    fill.className = 'fill';
+    fill.id = 'fill';
+    el.append(fill);
+  }
+  $('time').textContent = `${mmss(t)} / ${mmss(span)}`;
+  $('fill').style.width = `${Math.min(1, t / span) * 100}%`;
 }
 
 // ---------------------------------------------------------------- drawing
@@ -519,6 +576,7 @@ const TABS = [
   { key: 'switch', label: 'Song changes', note: 'Three songs in three styles, with 5 s of silence between them.' },
   { key: 'styles', label: 'Styles', note: 'One song per style. The model is never told the style; it only hears the music.' },
   { key: 'new', label: 'New music', note: 'One melody, made with Suno in three arrangements for this test. No dataset has it.' },
+  { key: 'live', label: 'Live', note: '' },
   { key: 'yours', label: 'Your song', note: '' },
 ];
 const GENRES = [['Classic', 'Classical'], ['Folk', 'Folk'], ['Street', 'Street'], ['Mix', 'Mixed']];
@@ -610,6 +668,8 @@ function renderLibrary() {
   $('tab-note').textContent = meta.note;
   $('tab-note').hidden = !meta.note;
   $('own').hidden = tab !== 'yours';
+  $('live').hidden = tab !== 'live';
+  $('list').hidden = tab === 'live';
   const items = manifest.programmes.filter((p) => p.section === tab);
   const list = $('list');
   list.replaceChildren();
@@ -623,7 +683,7 @@ function renderLibrary() {
       list.append(h, ...group.map(row));
     }
   } else list.append(...items.map(row));
-  if (!items.length) {
+  if (!items.length && tab !== 'live') {
     const e = document.createElement('li');
     e.className = 'empty';
     e.textContent = tab === 'yours' ? 'No dances from requests yet.' : 'Nothing here yet.';
@@ -639,7 +699,7 @@ function renderLibrary() {
     return Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1) * endOf(P.prog);
   };
   tl.addEventListener('pointerdown', (e) => {
-    if (!P.prog) return;
+    if (!P.prog || L) return;
     dragging = true;
     tl.setPointerCapture(e.pointerId);
     seek(at(e));
@@ -652,7 +712,11 @@ function renderLibrary() {
 // ---------------------------------------------------------------- loop and start
 function loop() {
   requestAnimationFrame(loop);
-  if (P.prog && tree) {
+  if (L && tree) {
+    const t = L.now(), q = L.pose(t);
+    if (q) { setPose(q); follow(reduceMotion ? 1 : 0.06); }
+    liveUI(t);
+  } else if (P.prog && tree) {
     let t = now();
     if (P.running && t >= endOf(P.prog)) {
       t = endOf(P.prog);
@@ -680,6 +744,7 @@ function filmLabel() { $('film-sound').textContent = $('film').muted ? 'Sound on
 videos.forEach((v) => v.addEventListener('play', () => {
   if (v.id === 'film' && v.muted) return;
   pause();
+  if (L && L.playing()) L.toggle();
   videos.forEach((o) => { if (o !== v) { if (o.id === 'film') { o.muted = true; filmLabel(); } else o.pause(); } });
 }));
 $('film-sound').addEventListener('click', () => {
@@ -703,7 +768,11 @@ async function start() {
   const first = manifest.programmes.find((p) => p.section === 'pause' && songsOf(p).every((id) => song(id).split === 'test'))
     || manifest.programmes[0];
   await select(first, false);
-  $('main').addEventListener('click', () => { pauseVideos(); P.running ? pause() : play(); });
+  $('main').addEventListener('click', () => {
+    if (L) { L.toggle(); return; }
+    pauseVideos();
+    P.running ? pause() : play();
+  });
   showSoundStatus();
   import('./requests.js').then((m) => {
     stopOthers = m.initRequests({
@@ -722,9 +791,11 @@ async function start() {
       pauseAll() { pause(); videos.forEach((v) => { if (v.id !== 'film') v.pause(); else if (!v.muted) { v.muted = true; filmLabel(); } }); },
     }).stop;
   }).catch(fail);
+  let liveCtl = null;
+  import('./live.js').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd }); }).catch(fail);
   $('over').addEventListener('click', () => { pause(); seek(0); });
   // hook for automated checks (tools/page_check.mjs)
-  window.aheadance = { seek, play: () => play(), pause, now, rootWorld, ready: true,
+  window.aheadance = { seek, play: () => play(), pause, now, rootWorld, ready: true, live: () => liveCtl,
     select: (id) => select(manifest.programmes.find((p) => p.id === id), true),
     state: () => (updateUI(now()), { route: P.route, errors: P.errors, clock: P.clock, prog: P.prog.id, running: P.running, t: +now().toFixed(2), music: $('cap-music-text').textContent,
       robot: $('cap-robot-text').textContent, hint: $('hint').textContent, label: $('main').title }) };

@@ -19,12 +19,15 @@ const STATUS = {
   ready: 'Ready',
   failed: 'No dance',
 };
-const store = {
+export const store = {   // the access code, shared with the live mode (js/live.js)
   get() { try { return localStorage.getItem('aheadance-code') || ''; } catch { return ''; } },
-  set(v) { try { v ? localStorage.setItem('aheadance-code', v) : localStorage.removeItem('aheadance-code'); } catch { /* storage unavailable */ } },
+  set(v) {
+    try { v ? localStorage.setItem('aheadance-code', v) : localStorage.removeItem('aheadance-code'); } catch { /* storage unavailable */ }
+    window.dispatchEvent(new CustomEvent('aheadance-code', { detail: v || '' }));
+  },
 };
 // this browser's random id; kept across visits (in memory only when storage is blocked)
-const CLIENT = (() => {
+export const CLIENT = (() => {
   let id = '';
   try { id = localStorage.getItem('aheadance-client') || ''; } catch { /* storage unavailable */ }
   if (!/^[A-Za-z0-9-]{16,64}$/.test(id)) {
@@ -153,6 +156,10 @@ export function initRequests(api) {
   }
   el.codeForm.addEventListener('submit', (e) => { e.preventDefault(); useCode(el.codeInput.value); });
   el.codeForget.addEventListener('click', () => { store.set(''); el.codeInput.value = ''; signedOut(); });
+  window.addEventListener('aheadance-code', (e) => {          // a code entered or dropped in the live panel
+    if (e.detail === S.code) return;
+    if (e.detail) useCode(e.detail); else signedOut();
+  });
 
   async function refresh() {
     clearTimeout(S.timer);

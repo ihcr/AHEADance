@@ -12,6 +12,7 @@ The site is static, so GitHub Pages serves it as is. `index.html` is the page.
 | `js/app.js` | Web demo: 3D robot, player, set list, timeline |
 | `js/fk.js` | G1 forward kinematics (matches MuJoCo to about 1 µm) |
 | `js/requests.js` | "Your song": send 20 s of music with an access code |
+| `js/live.js` | "Live": the model dances to a music file as it plays |
 | `assets/` | G1 model from the Unitree MJCF (BSD-3-Clause): `g1.json` (tree) and `g1_meshes.bin` (int16 meshes) |
 | `clips/manifest.json`, `clips/*.bin` | One entry per dance in the web demo: segments, plus 30 fps motion (root position, root quaternion, 29 joint angles) as int16 with per-channel scales |
 | `audio/*.mp3` | The audio each dance was generated from (96 kb/s) |
@@ -28,6 +29,16 @@ Every dance in the web demo is one run of the deployed model (seed 1234) on exac
 - A guest code can send 2 songs and sees only its own.
 - A shared guest code works for anyone who has it. Each browser counts as one person, with 2 songs, and sees only its own songs. All its users together send at most 10 songs a day.
 - The server adds 2 s of silence before the music and 4 s after it, runs the same model, and sends the dance back. This takes about two minutes.
+
+## Live
+
+The Live tab plays a music file in the browser and streams exactly what it plays to the live server (`LIVE` in `js/live.js`). Paused music streams as silence. The server runs the same feature service and generator as the real robot, one 0.533 s chunk at a time. Each chunk comes back to the page, which shows it 1.24 s behind the music.
+
+- It needs an access code, the same as Your song.
+- One visitor at a time, at most 3 minutes per session.
+- Guest codes together get 10 live sessions a day. Lab codes have no limit.
+- The first visitor in a while waits about a minute while the cloud GPU starts.
+- The audio is not kept.
 
 ## Local preview
 

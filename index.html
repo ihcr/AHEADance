@@ -187,6 +187,18 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .row .sub .fresh { color: var(--fresh); }
 .row .dur { font-family: var(--mono); font-size: 12px; color: var(--ink2); font-variant-numeric: tabular-nums; }
 .empty { padding: 8px 6px; font-size: 14px; color: var(--ink2); }
+.live { display: grid; gap: 12px; padding: 14px 6px 6px; align-content: start; overflow-y: auto; min-height: 0; }
+.live-note { font-size: 14px; color: var(--ink2); line-height: 1.4; }
+.live .code-form { justify-content: start; }
+.live .code-form input { width: 100%; flex: 1 1 140px; }
+.live-who { font-size: 13px; color: var(--ink2); }
+.live-drop { padding: 18px 12px; }
+.live-drop .drop-main { font-size: 15px; }
+.live-drop .drop-sub { overflow-wrap: anywhere; }
+.live-buttons { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.live-buttons .btn-small:disabled { opacity: 0.45; }
+.live-status { font-size: 14px; color: var(--ink); line-height: 1.4; min-height: 1.4em; }
+.live-stats { font-family: var(--mono); font-size: 11px; color: var(--ink2); line-height: 1.5; }
 
 /* how it works */
 .steps { list-style: none; margin: 56px auto 0; padding: 0; max-width: var(--mid); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
@@ -364,7 +376,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
   <section class="section gutter" id="demo" aria-labelledby="demo-h">
     <p class="eyebrow">Web demo</p>
     <h2 id="demo-h">Play it in your browser.</h2>
-    <p class="lead">Pick a dance from the list. The music plays here, and a model of the robot replays what the model generated for exactly that audio, 1.24 s behind the music as on the real robot.</p>
+    <p class="lead">Pick a dance from the list. The music plays here, and a model of the robot replays what the model generated for exactly that audio, 1.24 s behind the music as on the real robot. Under <strong>Live</strong>, play your own music file and the model dances to it as it plays.</p>
     <div class="inner app">
       <div class="player">
         <div class="stage" id="stage">
@@ -396,6 +408,26 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
           <p class="tab-note" id="tab-note"></p>
           <div class="tab-note" id="own" hidden>
             <p>Send us up to 20 s of music and we add the robot's dance to this list. <a href="#yours">How it works</a></p>
+          </div>
+          <div class="live" id="live" hidden>
+            <p class="live-note">Play a music file here. Our model on a cloud GPU listens as it plays, and the robot dances 1.24 s behind the music, as on the real robot. Pause the music and the robot settles; play it again and the robot dances again.</p>
+            <form class="code-form live-code" id="live-code-form" hidden>
+              <input type="text" id="live-code" placeholder="Access code" autocomplete="off" spellcheck="false" aria-label="Access code">
+              <button type="submit" class="btn-quiet">Use code</button>
+            </form>
+            <p class="live-who" id="live-who" hidden><span id="live-who-text"></span> · <button type="button" class="link" id="live-forget">Use another code</button></p>
+            <label class="drop live-drop">
+              <input type="file" id="live-file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac">
+              <span class="drop-main">Choose a music file</span>
+              <span class="drop-sub" id="live-file-name">It plays here. Only its sound goes to the model while you are live, and we do not keep it.</span>
+            </label>
+            <div class="live-buttons">
+              <button type="button" class="btn-small" id="live-go" disabled>Go live</button>
+              <button type="button" class="btn-quiet" id="live-music" hidden>Pause the music</button>
+              <button type="button" class="link" id="live-end" hidden>End</button>
+            </div>
+            <p class="live-status" id="live-status" aria-live="polite"></p>
+            <p class="live-stats" id="live-stats"></p>
           </div>
           <ul class="list" id="list"></ul>
         </div>
