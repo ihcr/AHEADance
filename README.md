@@ -1,6 +1,6 @@
 # AHEADance
 
-The project page for AHEADance (UCL Humanoid Robotics Lab): a Unitree G1 humanoid that dances to the music it hears, stops when the music stops, and dances again when it comes back. Contact: chengxuzhou@ucl.ac.uk.
+The project page for AHEADance (UCL Humanoid Robotics Lab): a Unitree G1 humanoid that hears the style in the music and improvises a dance to it, never quite the same twice. Contact: chengxuzhou@ucl.ac.uk.
 
 The site is static, so GitHub Pages serves it as is. `index.html` is the page.
 
@@ -16,9 +16,9 @@ The site is static, so GitHub Pages serves it as is. `index.html` is the page.
 | `assets/` | G1 model from the Unitree MJCF (BSD-3-Clause): `g1.json` (tree) and `g1_meshes.bin` (int16 meshes) |
 | `clips/manifest.json`, `clips/*.bin` | One entry per dance in the web demo: segments, plus 30 fps motion (root position, root quaternion, 29 joint angles) as int16 with per-channel scales |
 | `audio/*.mp3` | The audio each dance was generated from (96 kb/s) |
-| `media/` | Real-robot videos and their posters |
+| `media/` | Real-robot videos and their posters. `style_*.mp4`: the eight multi-style runs, each from 1 s before its music to 2 s after it, with the camera's own sound |
 
-Every dance in the web demo is one run of the deployed model (seed 1234) on exactly the audio you hear. The page shows the generated motion 1.24 s behind the music, as on the real robot.
+Every dance in the web demo is one run of the deployed model on exactly the audio you hear: seed 1234, except the three "Same song" takes (one unseen song, seeds 1234, 1235 and 1236, fixed in advance) and Live (a new seed each session). Each replay starts 1 s before its music: the longer silence the model heard first is skipped by starting the same run later (`lead_cut_s` in the manifest), never by joining runs. The page shows the generated motion 1.24 s behind the music, as on the real robot.
 
 ## Your song
 
@@ -35,6 +35,7 @@ Every dance in the web demo is one run of the deployed model (seed 1234) on exac
 The Live tab plays a music file in the browser and streams exactly what it plays to the live server (`LIVE` in `js/live.js`). Paused music streams as silence. The server runs the same feature service and generator as the real robot, one 0.533 s chunk at a time. Each chunk comes back to the page, which shows it 1.24 s behind the music.
 
 - It needs an access code, the same as Your song.
+- Every session draws a new random seed, so the same music gives a new dance each time.
 - One visitor at a time, at most 3 minutes per session.
 - Guest codes together get 10 live sessions a day. Lab codes have no limit.
 - The first visitor in a while waits about a minute while the cloud GPU starts.

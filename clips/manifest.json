@@ -1,6 +1,6 @@
 {
  "version": "player_v3",
- "note": "Offline version: dances the deployed model already generated (10-28 offline evaluation, seed 1234).",
+ "note": "Dances the deployed model already generated: the 10-28 offline evaluation (seed 1234), with the silence before the music shortened to 1 s by starting each replay later (lead_cut_s; same run, nothing stitched); plus one unseen song generated three times with seeds 1234, 1235 and 1236 (section takes).",
  "songs": {
   "021": {
    "id": "021",
@@ -260,30 +260,30 @@
   {
    "id": "n13_021",
    "section": "styles",
-   "duration": 100.0,
+   "duration": 96.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 95.0,
+     "t0": 1.0,
+     "t1": 91.0,
      "song": "021"
     },
     {
      "kind": "silence",
-     "t0": 95.0,
-     "t1": 100.0
+     "t0": 91.0,
+     "t1": 96.0
     }
    ],
    "audio": "audio/n13_021.mp3",
    "motion": {
     "file": "clips/n13_021.bin",
     "fps": 30.0,
-    "frames": 3000,
+    "frames": 2880,
     "channels": 36,
     "scale": [
      6.416076425899846e-05,
@@ -327,35 +327,36 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "n13_025",
    "section": "styles",
-   "duration": 100.0,
+   "duration": 96.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 95.0,
+     "t0": 1.0,
+     "t1": 91.0,
      "song": "025"
     },
     {
      "kind": "silence",
-     "t0": 95.0,
-     "t1": 100.0
+     "t0": 91.0,
+     "t1": 96.0
     }
    ],
    "audio": "audio/n13_025.mp3",
    "motion": {
     "file": "clips/n13_025.bin",
     "fps": 30.0,
-    "frames": 3000,
+    "frames": 2880,
     "channels": 36,
     "scale": [
      8.614385043224415e-05,
@@ -399,35 +400,36 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "n13_039",
    "section": "styles",
-   "duration": 100.0,
+   "duration": 96.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 95.0,
+     "t0": 1.0,
+     "t1": 91.0,
      "song": "039"
     },
     {
      "kind": "silence",
-     "t0": 95.0,
-     "t1": 100.0
+     "t0": 91.0,
+     "t1": 96.0
     }
    ],
    "audio": "audio/n13_039.mp3",
    "motion": {
     "file": "clips/n13_039.bin",
     "fps": 30.0,
-    "frames": 3000,
+    "frames": 2880,
     "channels": 36,
     "scale": [
      3.5259714229440506e-05,
@@ -471,35 +473,36 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "n13_047",
    "section": "styles",
-   "duration": 100.0,
+   "duration": 96.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 95.0,
+     "t0": 1.0,
+     "t1": 91.0,
      "song": "047"
     },
     {
      "kind": "silence",
-     "t0": 95.0,
-     "t1": 100.0
+     "t0": 91.0,
+     "t1": 96.0
     }
    ],
    "audio": "audio/n13_047.mp3",
    "motion": {
     "file": "clips/n13_047.bin",
     "fps": 30.0,
-    "frames": 3000,
+    "frames": 2880,
     "channels": 36,
     "scale": [
      5.852004103138809e-05,
@@ -543,35 +546,36 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "d30_075",
    "section": "styles",
-   "duration": 56.0,
+   "duration": 52.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 50.0,
+     "t0": 1.0,
+     "t1": 46.0,
      "song": "075"
     },
     {
      "kind": "silence",
-     "t0": 50.0,
-     "t1": 56.0
+     "t0": 46.0,
+     "t1": 52.0
     }
    ],
    "audio": "audio/d30_075.mp3",
    "motion": {
     "file": "clips/d30_075.bin",
     "fps": 30.0,
-    "frames": 1680,
+    "frames": 1560,
     "channels": 36,
     "scale": [
      8.641170648667115e-05,
@@ -615,35 +619,36 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "n13_140",
    "section": "styles",
-   "duration": 100.0,
+   "duration": 96.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 95.0,
+     "t0": 1.0,
+     "t1": 91.0,
      "song": "140"
     },
     {
      "kind": "silence",
-     "t0": 95.0,
-     "t1": 100.0
+     "t0": 91.0,
+     "t1": 96.0
     }
    ],
    "audio": "audio/n13_140.mp3",
    "motion": {
     "file": "clips/n13_140.bin",
     "fps": 30.0,
-    "frames": 3000,
+    "frames": 2880,
     "channels": 36,
     "scale": [
      4.6751257440870996e-05,
@@ -687,35 +692,36 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "d30_018",
    "section": "styles",
-   "duration": 56.0,
+   "duration": 52.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 50.0,
+     "t0": 1.0,
+     "t1": 46.0,
      "song": "018"
     },
     {
      "kind": "silence",
-     "t0": 50.0,
-     "t1": 56.0
+     "t0": 46.0,
+     "t1": 52.0
     }
    ],
    "audio": "audio/d30_018.mp3",
    "motion": {
     "file": "clips/d30_018.bin",
     "fps": 30.0,
-    "frames": 1680,
+    "frames": 1560,
     "channels": 36,
     "scale": [
      5.0181832594606465e-05,
@@ -759,35 +765,36 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "d30_176",
    "section": "styles",
-   "duration": 56.0,
+   "duration": 52.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 50.0,
+     "t0": 1.0,
+     "t1": 46.0,
      "song": "176"
     },
     {
      "kind": "silence",
-     "t0": 50.0,
-     "t1": 56.0
+     "t0": 46.0,
+     "t1": 52.0
     }
    ],
    "audio": "audio/d30_176.mp3",
    "motion": {
     "file": "clips/d30_176.bin",
     "fps": 30.0,
-    "frames": 1680,
+    "frames": 1560,
     "channels": 36,
     "scale": [
      6.30232281939782e-05,
@@ -831,35 +838,36 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "d30_063",
    "section": "styles",
-   "duration": 56.0,
+   "duration": 52.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 50.0,
+     "t0": 1.0,
+     "t1": 46.0,
      "song": "063"
     },
     {
      "kind": "silence",
-     "t0": 50.0,
-     "t1": 56.0
+     "t0": 46.0,
+     "t1": 52.0
     }
    ],
    "audio": "audio/d30_063.mp3",
    "motion": {
     "file": "clips/d30_063.bin",
     "fps": 30.0,
-    "frames": 1680,
+    "frames": 1560,
     "channels": 36,
     "scale": [
      5.174462078486383e-05,
@@ -903,35 +911,36 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "d30_068",
    "section": "styles",
-   "duration": 56.0,
+   "duration": 52.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 50.0,
+     "t0": 1.0,
+     "t1": 46.0,
      "song": "068"
     },
     {
      "kind": "silence",
-     "t0": 50.0,
-     "t1": 56.0
+     "t0": 46.0,
+     "t1": 52.0
     }
    ],
    "audio": "audio/d30_068.mp3",
    "motion": {
     "file": "clips/d30_068.bin",
     "fps": 30.0,
-    "frames": 1680,
+    "frames": 1560,
     "channels": 36,
     "scale": [
      2.4546512403903526e-05,
@@ -975,35 +984,36 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "n13_093",
    "section": "styles",
-   "duration": 72.0,
+   "duration": 68.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 67.36666666666666,
+     "t0": 1.0,
+     "t1": 63.366667,
      "song": "093"
     },
     {
      "kind": "silence",
-     "t0": 67.36666666666666,
-     "t1": 72.0
+     "t0": 63.366667,
+     "t1": 68.0
     }
    ],
    "audio": "audio/n13_093.mp3",
    "motion": {
     "file": "clips/n13_093.bin",
     "fps": 30.0,
-    "frames": 2160,
+    "frames": 2040,
     "channels": 36,
     "scale": [
      7.65372034681362e-05,
@@ -1047,35 +1057,36 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "n13_094",
    "section": "styles",
-   "duration": 100.0,
+   "duration": 96.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 95.0,
+     "t0": 1.0,
+     "t1": 91.0,
      "song": "094"
     },
     {
      "kind": "silence",
-     "t0": 95.0,
-     "t1": 100.0
+     "t0": 91.0,
+     "t1": 96.0
     }
    ],
    "audio": "audio/n13_094.mp3",
    "motion": {
     "file": "clips/n13_094.bin",
     "fps": 30.0,
-    "frames": 3000,
+    "frames": 2880,
     "channels": 36,
     "scale": [
      4.779863297112348e-05,
@@ -1119,35 +1130,36 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "d30_207",
    "section": "styles",
-   "duration": 55.2,
+   "duration": 51.2,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 45.333333333333336,
+     "t0": 1.0,
+     "t1": 41.333333,
      "song": "207"
     },
     {
      "kind": "silence",
-     "t0": 45.333333333333336,
-     "t1": 55.2
+     "t0": 41.333333,
+     "t1": 51.2
     }
    ],
    "audio": "audio/d30_207.mp3",
    "motion": {
     "file": "clips/d30_207.bin",
     "fps": 30.0,
-    "frames": 1656,
+    "frames": 1536,
     "channels": 36,
     "scale": [
      3.25724298640619e-05,
@@ -1191,46 +1203,47 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "f30_134",
    "section": "pause",
-   "duration": 52.0,
+   "duration": 48.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 25.0,
+     "t0": 1.0,
+     "t1": 21.0,
      "song": "134"
     },
     {
      "kind": "silence",
-     "t0": 25.0,
-     "t1": 31.0
+     "t0": 21.0,
+     "t1": 27.0
     },
     {
      "kind": "music",
-     "t0": 31.0,
-     "t1": 46.0,
+     "t0": 27.0,
+     "t1": 42.0,
      "song": "134"
     },
     {
      "kind": "silence",
-     "t0": 46.0,
-     "t1": 52.0
+     "t0": 42.0,
+     "t1": 48.0
     }
    ],
    "audio": "audio/f30_134.mp3",
    "motion": {
     "file": "clips/f30_134.bin",
     "fps": 30.0,
-    "frames": 1560,
+    "frames": 1440,
     "channels": 36,
     "scale": [
      3.2713656639637436e-05,
@@ -1274,46 +1287,47 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "f30_160",
    "section": "pause",
-   "duration": 52.0,
+   "duration": 48.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 25.0,
+     "t0": 1.0,
+     "t1": 21.0,
      "song": "160"
     },
     {
      "kind": "silence",
-     "t0": 25.0,
-     "t1": 31.0
+     "t0": 21.0,
+     "t1": 27.0
     },
     {
      "kind": "music",
-     "t0": 31.0,
-     "t1": 46.0,
+     "t0": 27.0,
+     "t1": 42.0,
      "song": "160"
     },
     {
      "kind": "silence",
-     "t0": 46.0,
-     "t1": 52.0
+     "t0": 42.0,
+     "t1": 48.0
     }
    ],
    "audio": "audio/f30_160.mp3",
    "motion": {
     "file": "clips/f30_160.bin",
     "fps": 30.0,
-    "frames": 1560,
+    "frames": 1440,
     "channels": 36,
     "scale": [
      1.9436071217537098e-05,
@@ -1357,46 +1371,47 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "f30_162",
    "section": "pause",
-   "duration": 52.0,
+   "duration": 48.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 25.0,
+     "t0": 1.0,
+     "t1": 21.0,
      "song": "162"
     },
     {
      "kind": "silence",
-     "t0": 25.0,
-     "t1": 31.0
+     "t0": 21.0,
+     "t1": 27.0
     },
     {
      "kind": "music",
-     "t0": 31.0,
-     "t1": 46.0,
+     "t0": 27.0,
+     "t1": 42.0,
      "song": "162"
     },
     {
      "kind": "silence",
-     "t0": 46.0,
-     "t1": 52.0
+     "t0": 42.0,
+     "t1": 48.0
     }
    ],
    "audio": "audio/f30_162.mp3",
    "motion": {
     "file": "clips/f30_162.bin",
     "fps": 30.0,
-    "frames": 1560,
+    "frames": 1440,
     "channels": 36,
     "scale": [
      4.204485919802878e-05,
@@ -1440,46 +1455,47 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "f30_027",
    "section": "pause",
-   "duration": 52.0,
+   "duration": 48.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 25.0,
+     "t0": 1.0,
+     "t1": 21.0,
      "song": "027"
     },
     {
      "kind": "silence",
-     "t0": 25.0,
-     "t1": 31.0
+     "t0": 21.0,
+     "t1": 27.0
     },
     {
      "kind": "music",
-     "t0": 31.0,
-     "t1": 46.0,
+     "t0": 27.0,
+     "t1": 42.0,
      "song": "027"
     },
     {
      "kind": "silence",
-     "t0": 46.0,
-     "t1": 52.0
+     "t0": 42.0,
+     "t1": 48.0
     }
    ],
    "audio": "audio/f30_027.mp3",
    "motion": {
     "file": "clips/f30_027.bin",
     "fps": 30.0,
-    "frames": 1560,
+    "frames": 1440,
     "channels": 36,
     "scale": [
      6.346120350149267e-05,
@@ -1523,46 +1539,47 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "f30_017",
    "section": "pause",
-   "duration": 52.0,
+   "duration": 48.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 25.0,
+     "t0": 1.0,
+     "t1": 21.0,
      "song": "017"
     },
     {
      "kind": "silence",
-     "t0": 25.0,
-     "t1": 31.0
+     "t0": 21.0,
+     "t1": 27.0
     },
     {
      "kind": "music",
-     "t0": 31.0,
-     "t1": 46.0,
+     "t0": 27.0,
+     "t1": 42.0,
      "song": "017"
     },
     {
      "kind": "silence",
-     "t0": 46.0,
-     "t1": 52.0
+     "t0": 42.0,
+     "t1": 48.0
     }
    ],
    "audio": "audio/f30_017.mp3",
    "motion": {
     "file": "clips/f30_017.bin",
     "fps": 30.0,
-    "frames": 1560,
+    "frames": 1440,
     "channels": 36,
     "scale": [
      1.4845376200783183e-05,
@@ -1606,57 +1623,58 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "d30_requested_shenyun_banger_peaches_gap5",
    "section": "switch",
-   "duration": 80.0,
+   "duration": 76.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 25.0,
+     "t0": 1.0,
+     "t1": 21.0,
      "song": "037"
     },
     {
      "kind": "silence",
-     "t0": 25.0,
-     "t1": 30.0
+     "t0": 21.0,
+     "t1": 26.0
     },
     {
      "kind": "music",
-     "t0": 30.0,
-     "t1": 50.0,
+     "t0": 26.0,
+     "t1": 46.0,
      "song": "054"
     },
     {
      "kind": "silence",
-     "t0": 50.0,
-     "t1": 55.0
+     "t0": 46.0,
+     "t1": 51.0
     },
     {
      "kind": "music",
-     "t0": 55.0,
-     "t1": 75.0,
+     "t0": 51.0,
+     "t1": 71.0,
      "song": "166"
     },
     {
      "kind": "silence",
-     "t0": 75.0,
-     "t1": 80.0
+     "t0": 71.0,
+     "t1": 76.0
     }
    ],
    "audio": "audio/d30_requested_shenyun_banger_peaches_gap5.mp3",
    "motion": {
     "file": "clips/d30_requested_shenyun_banger_peaches_gap5.bin",
     "fps": 30.0,
-    "frames": 2400,
+    "frames": 2280,
     "channels": 36,
     "scale": [
      3.1266795132267945e-05,
@@ -1700,57 +1718,58 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "d30_requested_gudian_breakers_peaches_gap5",
    "section": "switch",
-   "duration": 80.0,
+   "duration": 76.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 25.0,
+     "t0": 1.0,
+     "t1": 21.0,
      "song": "034"
     },
     {
      "kind": "silence",
-     "t0": 25.0,
-     "t1": 30.0
+     "t0": 21.0,
+     "t1": 26.0
     },
     {
      "kind": "music",
-     "t0": 30.0,
-     "t1": 50.0,
+     "t0": 26.0,
+     "t1": 46.0,
      "song": "057"
     },
     {
      "kind": "silence",
-     "t0": 50.0,
-     "t1": 55.0
+     "t0": 46.0,
+     "t1": 51.0
     },
     {
      "kind": "music",
-     "t0": 55.0,
-     "t1": 75.0,
+     "t0": 51.0,
+     "t1": 71.0,
      "song": "166"
     },
     {
      "kind": "silence",
-     "t0": 75.0,
-     "t1": 80.0
+     "t0": 71.0,
+     "t1": 76.0
     }
    ],
    "audio": "audio/d30_requested_gudian_breakers_peaches_gap5.mp3",
    "motion": {
     "file": "clips/d30_requested_gudian_breakers_peaches_gap5.bin",
     "fps": 30.0,
-    "frames": 2400,
+    "frames": 2280,
     "channels": 36,
     "scale": [
      3.500739677916168e-05,
@@ -1794,57 +1813,58 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "rr_080_068_166",
    "section": "switch",
-   "duration": 80.0,
+   "duration": 76.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 25.0,
+     "t0": 1.0,
+     "t1": 21.0,
      "song": "080"
     },
     {
      "kind": "silence",
-     "t0": 25.0,
-     "t1": 30.0
+     "t0": 21.0,
+     "t1": 26.0
     },
     {
      "kind": "music",
-     "t0": 30.0,
-     "t1": 50.0,
+     "t0": 26.0,
+     "t1": 46.0,
      "song": "068"
     },
     {
      "kind": "silence",
-     "t0": 50.0,
-     "t1": 55.0
+     "t0": 46.0,
+     "t1": 51.0
     },
     {
      "kind": "music",
-     "t0": 55.0,
-     "t1": 75.0,
+     "t0": 51.0,
+     "t1": 71.0,
      "song": "166"
     },
     {
      "kind": "silence",
-     "t0": 75.0,
-     "t1": 80.0
+     "t0": 71.0,
+     "t1": 76.0
     }
    ],
    "audio": "audio/rr_080_068_166.mp3",
    "motion": {
     "file": "clips/rr_080_068_166.bin",
     "fps": 30.0,
-    "frames": 2400,
+    "frames": 2280,
     "channels": 36,
     "scale": [
      3.676809765923141e-05,
@@ -1888,35 +1908,36 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": "11-01 16:12 real-robot WAV run"
+   "note": "11-01 16:12 real-robot WAV run",
+   "lead_cut_s": 4.0
   },
   {
    "id": "d30_suno_m01_classic",
    "section": "new",
-   "duration": 56.0,
+   "duration": 52.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 50.0,
+     "t0": 1.0,
+     "t1": 46.0,
      "song": "suno_m01_classic"
     },
     {
      "kind": "silence",
-     "t0": 50.0,
-     "t1": 56.0
+     "t0": 46.0,
+     "t1": 52.0
     }
    ],
    "audio": "audio/d30_suno_m01_classic.mp3",
    "motion": {
     "file": "clips/d30_suno_m01_classic.bin",
     "fps": 30.0,
-    "frames": 1680,
+    "frames": 1560,
     "channels": 36,
     "scale": [
      6.317005474765408e-05,
@@ -1960,35 +1981,36 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "d30_suno_m01_folk",
    "section": "new",
-   "duration": 56.0,
+   "duration": 52.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 50.0,
+     "t0": 1.0,
+     "t1": 46.0,
      "song": "suno_m01_folk"
     },
     {
      "kind": "silence",
-     "t0": 50.0,
-     "t1": 56.0
+     "t0": 46.0,
+     "t1": 52.0
     }
    ],
    "audio": "audio/d30_suno_m01_folk.mp3",
    "motion": {
     "file": "clips/d30_suno_m01_folk.bin",
     "fps": 30.0,
-    "frames": 1680,
+    "frames": 1560,
     "channels": 36,
     "scale": [
      2.3790013893723585e-05,
@@ -2032,35 +2054,36 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "d30_suno_m01_street",
    "section": "new",
-   "duration": 56.0,
+   "duration": 52.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 5.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 5.0,
-     "t1": 50.0,
+     "t0": 1.0,
+     "t1": 46.0,
      "song": "suno_m01_street"
     },
     {
      "kind": "silence",
-     "t0": 50.0,
-     "t1": 56.0
+     "t0": 46.0,
+     "t1": 52.0
     }
    ],
    "audio": "audio/d30_suno_m01_street.mp3",
    "motion": {
     "file": "clips/d30_suno_m01_street.bin",
     "fps": 30.0,
-    "frames": 1680,
+    "frames": 1560,
     "channels": 36,
     "scale": [
      3.8240987364294085e-05,
@@ -2104,35 +2127,36 @@
    "display_delay_s": 1.24,
    "seed": 1234,
    "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
-   "note": null
+   "note": null,
+   "lead_cut_s": 4.0
   },
   {
    "id": "test_071",
    "section": "yours",
-   "duration": 26.0,
+   "duration": 25.0,
    "segments": [
     {
      "kind": "silence",
      "t0": 0.0,
-     "t1": 2.0
+     "t1": 1.0
     },
     {
      "kind": "music",
-     "t0": 2.0,
-     "t1": 22.0,
+     "t0": 1.0,
+     "t1": 21.0,
      "song": "test_071"
     },
     {
      "kind": "silence",
-     "t0": 22.0,
-     "t1": 26.0
+     "t0": 21.0,
+     "t1": 25.0
     }
    ],
    "audio": "audio/test_071.mp3",
    "motion": {
     "file": "clips/test_071.bin",
     "fps": 30.0,
-    "frames": 780,
+    "frames": 750,
     "channels": 36,
     "scale": [
      2.4064998673728555e-05,
@@ -2175,7 +2199,227 @@
    },
    "display_delay_s": 1.24,
    "seed": 1234,
-   "model": "od-causal-events (deployed, frozen), WAV input, no adapter"
+   "model": "od-causal-events (deployed, frozen), WAV input, no adapter",
+   "lead_cut_s": 1.0
+  },
+  {
+   "id": "takes_162_s1234",
+   "section": "takes",
+   "take": 1,
+   "duration": 25.0,
+   "segments": [
+    {
+     "kind": "silence",
+     "t0": 0.0,
+     "t1": 1.0
+    },
+    {
+     "kind": "music",
+     "t0": 1.0,
+     "t1": 21.0,
+     "song": "162"
+    },
+    {
+     "kind": "silence",
+     "t0": 21.0,
+     "t1": 25.0
+    }
+   ],
+   "audio": "audio/takes_162.mp3",
+   "motion": {
+    "file": "clips/takes_162_s1234.bin",
+    "fps": 30.0,
+    "frames": 750,
+    "channels": 36,
+    "scale": [
+     3.473157455689536e-05,
+     1.0482812232857248e-05,
+     2.471320407269155e-05,
+     3.0516852326078358e-05,
+     5.7454892945587205e-06,
+     5.8705195278419535e-06,
+     3.0512604856198587e-05,
+     3.2429547131900134e-05,
+     2.7272143689779963e-05,
+     1.9335255986818277e-05,
+     5.01851354180997e-05,
+     1.8742318286826482e-05,
+     7.958232376010621e-06,
+     2.981736043201912e-05,
+     3.052973298313133e-05,
+     2.0263400007822976e-05,
+     6.290472695798889e-05,
+     2.1429455094397565e-05,
+     8.02167884364943e-06,
+     1.6351727638660245e-05,
+     1.571213507465285e-05,
+     1.1597897501690626e-05,
+     8.244662462826429e-05,
+     6.823258582304442e-05,
+     4.6814241454996164e-05,
+     4.062847371220272e-05,
+     3.313148018423717e-05,
+     1.377051017848079e-05,
+     2.8635968977754435e-05,
+     9.192556582106354e-05,
+     6.001879764577491e-05,
+     4.7558099854566186e-05,
+     4.518104471962282e-05,
+     3.540642141375401e-05,
+     1.3015059005658605e-05,
+     2.4724309341906117e-05
+    ]
+   },
+   "display_delay_s": 1.24,
+   "seed": 1234,
+   "model": "od-causal-events (deployed, frozen), WAV input, no adapter; generated on a cloud GPU (L40S)",
+   "note": "Same audio for all three takes; only the seed differs (1234, 1235, 1236, fixed in advance)."
+  },
+  {
+   "id": "takes_162_s1235",
+   "section": "takes",
+   "take": 2,
+   "duration": 25.0,
+   "segments": [
+    {
+     "kind": "silence",
+     "t0": 0.0,
+     "t1": 1.0
+    },
+    {
+     "kind": "music",
+     "t0": 1.0,
+     "t1": 21.0,
+     "song": "162"
+    },
+    {
+     "kind": "silence",
+     "t0": 21.0,
+     "t1": 25.0
+    }
+   ],
+   "audio": "audio/takes_162.mp3",
+   "motion": {
+    "file": "clips/takes_162_s1235.bin",
+    "fps": 30.0,
+    "frames": 750,
+    "channels": 36,
+    "scale": [
+     2.959000085174723e-05,
+     1.4855356861669913e-05,
+     2.4801857045736794e-05,
+     3.0515640842164042e-05,
+     3.822659225224044e-06,
+     5.204250215374453e-06,
+     3.046077117130602e-05,
+     3.218271001292551e-05,
+     1.5862944812491178e-05,
+     1.8741814411384643e-05,
+     5.8574017582841364e-05,
+     1.9218420550883385e-05,
+     7.4069089665711085e-06,
+     2.4320856093720048e-05,
+     1.96295137877183e-05,
+     1.7465530660011497e-05,
+     3.8401970010719555e-05,
+     1.8598022548833752e-05,
+     8.258876843612094e-06,
+     2.6411055121528193e-05,
+     1.143346129838361e-05,
+     9.717270638699912e-06,
+     8.850897744966026e-05,
+     7.509649714875833e-05,
+     4.780938999549614e-05,
+     4.8408539733877405e-05,
+     2.3324848964019543e-05,
+     1.4621748618510301e-05,
+     3.2158851419802126e-05,
+     7.234770927088092e-05,
+     4.687768246550023e-05,
+     4.279313352461842e-05,
+     4.4568084792236306e-05,
+     1.688479329427394e-05,
+     1.4932299604726442e-05,
+     3.0958507336553564e-05
+    ]
+   },
+   "display_delay_s": 1.24,
+   "seed": 1235,
+   "model": "od-causal-events (deployed, frozen), WAV input, no adapter; generated on a cloud GPU (L40S)",
+   "note": "Same audio for all three takes; only the seed differs (1234, 1235, 1236, fixed in advance)."
+  },
+  {
+   "id": "takes_162_s1236",
+   "section": "takes",
+   "take": 3,
+   "duration": 25.0,
+   "segments": [
+    {
+     "kind": "silence",
+     "t0": 0.0,
+     "t1": 1.0
+    },
+    {
+     "kind": "music",
+     "t0": 1.0,
+     "t1": 21.0,
+     "song": "162"
+    },
+    {
+     "kind": "silence",
+     "t0": 21.0,
+     "t1": 25.0
+    }
+   ],
+   "audio": "audio/takes_162.mp3",
+   "motion": {
+    "file": "clips/takes_162_s1236.bin",
+    "fps": 30.0,
+    "frames": 750,
+    "channels": 36,
+    "scale": [
+     9.310207648359115e-06,
+     2.4782480674800372e-05,
+     2.458022279407877e-05,
+     3.051628296501953e-05,
+     4.509258183677134e-06,
+     5.203468480821633e-06,
+     1.288816970847082e-05,
+     2.365554223459488e-05,
+     2.195298349751462e-05,
+     1.9160585836811645e-05,
+     4.763669714731362e-05,
+     2.2811372603110464e-05,
+     9.102176971626474e-06,
+     2.6612812669384805e-05,
+     2.2730656123035437e-05,
+     1.7588630886638438e-05,
+     4.786626789194186e-05,
+     1.9612685803196765e-05,
+     7.486425331762546e-06,
+     1.559695678863679e-05,
+     1.3352752870594677e-05,
+     1.2684921453305223e-05,
+     6.21808707763195e-05,
+     5.0996851469230786e-05,
+     4.9377239361293046e-05,
+     4.519608822108137e-05,
+     1.6684698353470905e-05,
+     1.2230606799734396e-05,
+     2.52179653894062e-05,
+     8.296379365035363e-05,
+     4.882943398472183e-05,
+     4.505371157547543e-05,
+     3.9436715520959526e-05,
+     1.7311124670373462e-05,
+     1.077098696837293e-05,
+     3.1171532048622306e-05
+    ]
+   },
+   "display_delay_s": 1.24,
+   "seed": 1236,
+   "model": "od-causal-events (deployed, frozen), WAV input, no adapter; generated on a cloud GPU (L40S)",
+   "note": "Same audio for all three takes; only the seed differs (1234, 1235, 1236, fixed in advance)."
   }
  ]
 }

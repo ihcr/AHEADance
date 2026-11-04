@@ -560,7 +560,8 @@ function titleOf(p) {
   const ids = songsOf(p);
   if (p.section === 'switch') return ids.map((id) => song(id).style).join(' → ');
   const s = song(ids[0]);
-  return p.section === 'pause' ? `${s.style}: the music stops, then carries on` : `${s.name} · ${s.style}`;
+  return p.section === 'pause' ? `${s.style}: the music stops, then carries on`
+    : p.section === 'takes' ? `${s.name} · ${s.style} · take ${p.take} of 3` : `${s.name} · ${s.style}`;
 }
 function programmeChanged() {
   $('title').textContent = titleOf(P.prog);
@@ -572,18 +573,19 @@ function programmeChanged() {
 
 // ---------------------------------------------------------------- set list
 const TABS = [
-  { key: 'pause', label: 'Music stops', note: '20 s of music, 6 s of silence, then the same song carries on.' },
-  { key: 'switch', label: 'Song changes', note: 'Three songs in three styles, with 5 s of silence between them.' },
   { key: 'styles', label: 'Styles', note: 'One song per style. The model is never told the style; it only hears the music.' },
-  { key: 'new', label: 'New music', note: 'One melody, made with Suno in three arrangements for this test. No dataset has it.' },
+  { key: 'takes', label: 'Same song', note: 'One song the model never heard in training, danced three times. Only the random seed differs (1234, 1235, 1236, fixed in advance).' },
   { key: 'live', label: 'Live', note: '' },
+  { key: 'new', label: 'New music', note: 'One melody, made with Suno in three arrangements for this test. No dataset has it.' },
+  { key: 'switch', label: 'Song changes', note: 'Three songs in three styles, with 5 s of silence between them.' },
+  { key: 'pause', label: 'Music stops', note: '20 s of music, 6 s of silence, then the same song carries on.' },
   { key: 'yours', label: 'Your song', note: '' },
 ];
 const GENRES = [['Classic', 'Classical'], ['Folk', 'Folk'], ['Street', 'Street'], ['Mix', 'Mixed']];
 const narrow = matchMedia('(max-width: 980px)');
-let tab = 'pause';
+let tab = 'styles';
 try { tab = localStorage.getItem('aheadance-tab') || tab; } catch { /* storage unavailable */ }
-if (!TABS.some((x) => x.key === tab)) tab = 'pause';
+if (!TABS.some((x) => x.key === tab)) tab = 'styles';
 
 function freshness(ids) {
   const ss = ids.map(song);
@@ -622,11 +624,13 @@ function row(p) {
   text.className = 'text';
   const title = document.createElement('span');
   title.className = 'title';
-  title.textContent = p.section === 'switch' ? ids.map((id) => song(id).style).join(' → ') : first.style;
+  title.textContent = p.section === 'switch' ? ids.map((id) => song(id).style).join(' → ')
+    : p.section === 'takes' ? `Take ${p.take}` : first.style;
   const sub = document.createElement('span');
   sub.className = 'sub';
   sub.textContent = `${p.section === 'switch' ? ids.map((id) => song(id).name).join(' → ')
     : p.section === 'new' ? 'm01 · made with Suno'
+      : p.section === 'takes' ? `${first.name} · ${first.style} · seed ${p.seed}`
       : p.section === 'yours' && first.requested_by ? `${first.name} · from ${first.requested_by}` : first.name} · `;
   const [tag, fresh] = freshness(ids);
   const t = document.createElement('span');
@@ -765,7 +769,10 @@ async function start() {
   manifest = await getJSON('clips/manifest.json');
   renderLibrary();
   await loadRobot();
-  const first = manifest.programmes.find((p) => p.section === 'pause' && songsOf(p).every((id) => song(id).split === 'test'))
+  // first dance shown: a lively style the model never heard in training (Hip-hop, chiefRocka, FineDance val)
+  const first = (tab === 'styles' && manifest.programmes.find((p) => p.id === 'n13_094'))
+    || manifest.programmes.find((p) => p.section === tab && songsOf(p).every((id) => !song(id).seen_in_training))
+    || manifest.programmes.find((p) => p.section === 'styles' && songsOf(p).every((id) => !song(id).seen_in_training))
     || manifest.programmes[0];
   await select(first, false);
   $('main').addEventListener('click', () => {

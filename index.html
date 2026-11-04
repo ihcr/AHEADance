@@ -131,6 +131,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .clip .tag { font-size: 12px; font-weight: 600; color: var(--ink2); letter-spacing: 0.02em; text-transform: uppercase; }
 .clip h3 { font-size: 24px; line-height: 1.15; }
 .clip p { color: var(--ink2); font-size: 16px; }
+.clips.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.clips.styles .clip h3 { font-size: 22px; }
+.clips.styles + .film-cap { margin-top: 20px; }
+.stop-film { margin-top: 56px; }
 
 /* web demo */
 .app { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: stretch; margin-top: 56px; }
@@ -293,7 +297,9 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
   .library-inner { position: static; }
   .list { overflow: visible; }
   .clips { grid-template-columns: minmax(0, 1fr); max-width: 680px; }
+  .clips.two { max-width: var(--wide); }
 }
+@media (max-width: 734px) { .clips.two { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 734px) {
   .hero { padding-top: 44px; }
   .film video { border-radius: 20px; }
@@ -313,9 +319,10 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
   <nav class="nav" aria-label="Page">
     <a class="brand" href="#top">AHEADance</a>
     <div class="nav-links">
-      <a class="pill-link" href="#robot">Real robot</a>
-      <a class="pill-link" href="#demo">Web demo</a>
       <a class="pill-link" href="#how">How it works</a>
+      <a class="pill-link" href="#robot">Real robot</a>
+      <a class="pill-link" href="#styles">Styles</a>
+      <a class="pill-link" href="#demo">Web demo</a>
       <a class="pill-link" href="#yours">Your song</a>
       <a class="pill-blue" href="#demo">Try it</a>
     </div>
@@ -325,8 +332,8 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
 <main id="top">
   <header class="hero gutter">
     <p class="name">AHEADance</p>
-    <h1>Dances to what<br>it hears.</h1>
-    <p class="sub">A humanoid robot that dances to music as it plays, settles when the music stops, and dances again when it returns.</p>
+    <h1>Every song,<br>its own dance.</h1>
+    <p class="sub">A humanoid robot that hears the style in the music and improvises a dance to it, never quite the same twice, even to the same song.</p>
     <div class="cta">
       <a class="btn-blue" href="#demo">Try the web demo</a>
       <a class="btn-link" href="#robot">Watch the real robot ›</a>
@@ -341,17 +348,28 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
     <p class="film-cap">A Unitree G1 dancing to eight songs in seven styles, each played from an audio file. One model for all of them; it is never told the style.</p>
   </section>
 
-  <section class="band section gutter" id="robot" aria-labelledby="robot-h">
+  <section class="band section gutter" id="how" aria-labelledby="how-h">
+    <p class="eyebrow">How it works</p>
+    <h2 id="how-h">Listen. Generate. Move.</h2>
+    <p class="lead">One model turns the music it has already heard into the robot's next movements. <strong>It is never told the style or the tempo; it hears them in the music.</strong> Each dance is sampled, so the same song can be danced in many ways.</p>
+    <ol class="steps">
+      <li class="step"><span class="k">1 · Listen</span><h3>Only what it has heard.</h3><p>Music features are computed from audio the system has already received. Nothing from later in the song is used.</p></li>
+      <li class="step"><span class="k">2 · Generate</span><h3>30 frames a second.</h3><p>A frozen dance generator turns those features into motion for the 29 joints of a Unitree G1, starting from standing.</p></li>
+      <li class="step"><span class="k">3 · Move</span><h3>1.24 s later.</h3><p>The robot executes each frame <strong>1.24 s after the music it came from</strong>. The web demo replays every dance with the same delay.</p></li>
+    </ol>
+  </section>
+
+  <section class="section gutter" id="robot" aria-labelledby="robot-h">
     <p class="eyebrow">Real Unitree G1</p>
     <h2 id="robot-h">Music in the room. A robot that listens.</h2>
-    <p class="lead">A loudspeaker plays the music and a microphone picks it up. <strong>The robot dances while the music plays, stands while it is silent, and starts again when the music returns.</strong></p>
-    <div class="clips">
+    <p class="lead">A loudspeaker plays the music and a microphone picks it up. <strong>The robot dances to whatever it hears, in the style of that music.</strong></p>
+    <div class="clips two">
       <article class="clip">
         <video src="media/mic_dai_locking.mp4" poster="media/mic_dai_locking.jpg" controls playsinline preload="none"></video>
         <div class="body">
           <span class="tag">Microphone · two songs</span>
-          <h3>The music stops. Then a new song.</h3>
-          <p>Dai folk music, then silence, then Locking. The robot comes to rest in the silence and dances again to the new song.</p>
+          <h3>From Dai folk to Locking.</h3>
+          <p>Dai folk music, a short silence, then Locking. The dance changes with the music.</p>
         </div>
       </article>
       <article class="clip">
@@ -362,21 +380,90 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
           <p>Swoop, a Popping track from the test set, through the same loudspeaker and microphone.</p>
         </div>
       </article>
+    </div>
+  </section>
+
+  <section class="band section gutter" id="styles" aria-labelledby="styles-h">
+    <p class="eyebrow">Real Unitree G1 · eight songs</p>
+    <h2 id="styles-h">One model. Many styles.</h2>
+    <p class="lead">Eight runs on the real robot, one per song or set of songs. <strong>The model is never told the style; the dance follows what it hears.</strong></p>
+    <div class="clips two styles">
       <article class="clip">
-        <video src="media/stop_aligned.mp4" poster="media/stop_aligned.jpg" controls playsinline preload="none" muted loop></video>
+        <video src="media/style_miao.mp4" poster="media/style_miao.jpg" controls playsinline preload="none"></video>
         <div class="body">
-          <span class="tag">Audio files · eight runs</span>
-          <h3>Every run stops with the music.</h3>
-          <p>Eight real-robot runs lined up at the moment their music stops. Each one goes quiet.</p>
+          <span class="tag">One song</span>
+          <h3>Miao</h3>
+          <p>miaozufengcai</p>
+        </div>
+      </article>
+      <article class="clip">
+        <video src="media/style_shuiyueliang.mp4" poster="media/style_shuiyueliang.jpg" controls playsinline preload="none"></video>
+        <div class="body">
+          <span class="tag">3 songs in a row</span>
+          <h3>Dai → Locking → Hip-hop</h3>
+          <p>shuiyueliang → Runaway Baby → Peaches</p>
+        </div>
+      </article>
+      <article class="clip">
+        <video src="media/style_juelian.mp4" poster="media/style_juelian.jpg" controls playsinline preload="none"></video>
+        <div class="body">
+          <span class="tag">One song</span>
+          <h3>Chinese</h3>
+          <p>juelian</p>
+        </div>
+      </article>
+      <article class="clip">
+        <video src="media/style_loco.mp4" poster="media/style_loco.jpg" controls playsinline preload="none"></video>
+        <div class="body">
+          <span class="tag">One song</span>
+          <h3>K-pop</h3>
+          <p>LOCO</p>
+        </div>
+      </article>
+      <article class="clip">
+        <video src="media/style_suffer.mp4" poster="media/style_suffer.jpg" controls playsinline preload="none"></video>
+        <div class="body">
+          <span class="tag">One song</span>
+          <h3>Urban</h3>
+          <p>suffer</p>
+        </div>
+      </article>
+      <article class="clip">
+        <video src="media/style_tebiederen.mp4" poster="media/style_tebiederen.jpg" controls playsinline preload="none"></video>
+        <div class="body">
+          <span class="tag">One song</span>
+          <h3>Choreography</h3>
+          <p>tebiederen</p>
+        </div>
+      </article>
+      <article class="clip">
+        <video src="media/style_gocrazy.mp4" poster="media/style_gocrazy.jpg" controls playsinline preload="none"></video>
+        <div class="body">
+          <span class="tag">3 songs in a row</span>
+          <h3>Hip-hop → Hip-hop → Breaking</h3>
+          <p>GoCrazy → Ikarus → Just Begun</p>
+        </div>
+      </article>
+      <article class="clip">
+        <video src="media/style_uhoh.mp4" poster="media/style_uhoh.jpg" controls playsinline preload="none"></video>
+        <div class="body">
+          <span class="tag">One song</span>
+          <h3>K-pop</h3>
+          <p>UhOH</p>
         </div>
       </article>
     </div>
+    <p class="film-cap">In these runs the music file streams to the model as it plays, and a loudspeaker plays the same music in the room. Style names are the FineDance music labels.</p>
+    <figure class="film stop-film">
+      <video src="media/stop_aligned.mp4" poster="media/stop_aligned.jpg" controls playsinline preload="none" muted loop></video>
+    </figure>
+    <p class="film-cap">The same eight runs, lined up at the moment their music stops.</p>
   </section>
 
   <section class="section gutter" id="demo" aria-labelledby="demo-h">
     <p class="eyebrow">Web demo</p>
     <h2 id="demo-h">Play it in your browser.</h2>
-    <p class="lead">Pick a dance from the list. The music plays here, and a model of the robot replays what the model generated for exactly that audio, 1.24 s behind the music as on the real robot. Under <strong>Live</strong>, play your own music file and the model dances to it as it plays.</p>
+    <p class="lead">Pick a dance from the list. The music plays here, and a model of the robot replays what the model generated for exactly that audio, 1.24 s behind the music as on the real robot. Under <strong>Same song</strong>, one song is danced three times; under <strong>Live</strong>, play your own music file and the model dances to it as it plays.</p>
     <div class="inner app">
       <div class="player">
         <div class="stage" id="stage">
@@ -435,21 +522,10 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
     </div>
   </section>
 
-  <section class="band section gutter" id="how" aria-labelledby="how-h">
-    <p class="eyebrow">How it works</p>
-    <h2 id="how-h">Listen. Generate. Move.</h2>
-    <p class="lead">One model turns the music it has already heard into the robot's next movements. <strong>It is never told the style, the tempo, or when a song ends.</strong></p>
-    <ol class="steps">
-      <li class="step"><span class="k">1 · Listen</span><h3>Only what it has heard.</h3><p>Music features are computed from audio the system has already received. Nothing from later in the song is used.</p></li>
-      <li class="step"><span class="k">2 · Generate</span><h3>30 frames a second.</h3><p>A frozen dance generator turns those features into motion for the 29 joints of a Unitree G1, starting from standing.</p></li>
-      <li class="step"><span class="k">3 · Move</span><h3>1.24 s later.</h3><p>The robot executes each frame <strong>1.24 s after the music it came from</strong>. The web demo replays every dance with the same delay.</p></li>
-    </ol>
-  </section>
-
   <section class="section gutter" id="look" aria-labelledby="look-h">
     <p class="eyebrow">Take a closer look</p>
     <h2 id="look-h">Music in. Motion out.</h2>
-    <p class="lead">The dance loaded in the web demo, on one timeline. When the music stops, the robot's activity falls away; when it returns, the robot picks up again.</p>
+    <p class="lead">The dance loaded in the web demo, on one timeline: what the robot heard, and how much it moved.</p>
     <div class="look">
       <div class="look-head">
         <h3 id="look-title">Loaded dance</h3>
@@ -464,7 +540,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
       </div>
     </div>
     <ul class="facts">
-      <li><strong>One run, exactly this audio.</strong>Every dance in the web demo is one run of the deployed model (seed 1234) on the audio you hear. Nothing is cut together from other runs.</li>
+      <li><strong>One run, exactly this audio.</strong>Every dance in the web demo is one run of the deployed model on the audio you hear: seed 1234, except the three Same song takes (seeds 1234, 1235, 1236) and Live (a new seed each session). Nothing is cut together from other runs.</li>
       <li><strong>Generated motion.</strong>The web demo shows the motion the model generated. It is not the joint angles measured on the real robot.</li>
       <li><strong>Robot status.</strong>The label on the stage comes from the joint speed of that motion: below 0.12 rad/s is standing, above 0.25 rad/s is dancing.</li>
       <li><strong>Styles are only labels.</strong>Style names are the FineDance music labels. The model only hears the music.</li>
