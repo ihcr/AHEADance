@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="AHEADance: a Unitree G1 humanoid that dances to the music it hears, stops when the music stops, and dances again when it returns.">
+<title>AHEADance</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ccircle cx=%228%22 cy=%228%22 r=%227%22 fill=%22%230071e3%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a product page in the spirit of the reference the user chose (supermimic.github.io): a floating pill nav,
+   a centred statement over the real-robot film, real-robot clips, the web demo (stage + set list), then alternating
+   white and light-grey bands, each an eyebrow + one large headline + rounded media. */
+:root {
+  --page: #ffffff;
+  --band: #f5f5f7;
+  --media: #f5f5f7;
+  --card: #ffffff;
+  --fill: #e8e8ed;
+  --hair: #d2d2d7;
+  --ink: #1d1d1f;
+  --ink2: #6e6e73;
+  --blue: #0071e3;
+  --blue-ink: #ffffff;
+  --fresh: #248a3d;
+  --robot-fill: #ff9f0a;
+  --song-1: #0071e3;
+  --song-2: #1a9a8b;
+  --song-3: #a748d0;
+  --hatch: #b9b9c0;
+  --overlay: rgba(255, 255, 255, 0.78);
+  --display: "Inter Tight", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --text: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --wide: 1260px;
+  --mid: 1050px;
+  --copy: 760px;
+  --sec: 96px;
+  --r-lg: 28px;
+}
+@media (min-width: 735px) { :root { --sec: 132px; } }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #000000; --band: #101012; --media: #1c1c1e; --card: #1c1c1e; --fill: #2c2c2e; --hair: #3a3a3c;
+    --ink: #f5f5f7; --ink2: #a1a1a6; --blue: #2997ff; --blue-ink: #ffffff; --fresh: #4cd27a; --robot-fill: #ff9f0a;
+    --song-1: #2997ff; --song-2: #3cc9b4; --song-3: #c47cf0; --hatch: #55555c; --overlay: rgba(28, 28, 30, 0.78);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #000000; --band: #101012; --media: #1c1c1e; --card: #1c1c1e; --fill: #2c2c2e; --hair: #3a3a3c;
+  --ink: #f5f5f7; --ink2: #a1a1a6; --blue: #2997ff; --blue-ink: #ffffff; --fresh: #4cd27a; --robot-fill: #ff9f0a;
+  --song-1: #2997ff; --song-2: #3cc9b4; --song-3: #c47cf0; --hatch: #55555c; --overlay: rgba(28, 28, 30, 0.78);
+  color-scheme: dark;
+}
+
+[hidden] { display: none !important; }
+html { scroll-padding-top: 88px; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--text);
+  font-size: 17px;
+  line-height: 1.47;
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--page); }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; margin: 0; text-wrap: balance; letter-spacing: -0.025em; }
+p { margin: 0; }
+figure { margin: 0; }
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+.gutter { padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+@media (min-width: 735px) { .gutter { padding-left: max(40px, env(safe-area-inset-left, 0px)); padding-right: max(40px, env(safe-area-inset-right, 0px)); } }
+.inner { max-width: var(--wide); margin: 0 auto; }
+
+/* nav */
+.nav-wrap { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; padding-top: 12px; }
+.nav {
+  max-width: var(--mid); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 8px 8px 8px 18px; border-radius: 16px; border: 1px solid var(--hair);
+  background: color-mix(in srgb, var(--page) 82%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(18px); backdrop-filter: saturate(180%) blur(18px);
+}
+.brand { font-family: var(--display); font-weight: 600; font-size: 19px; letter-spacing: -0.02em; color: var(--ink); }
+.brand:hover { text-decoration: none; }
+.nav-links { display: flex; gap: 8px; align-items: center; }
+.pill-link { border: 1px solid var(--hair); border-radius: 999px; padding: 4px 14px; font-size: 14px; color: var(--ink); }
+.pill-link:hover { text-decoration: none; background: var(--band); }
+.pill-blue { border-radius: 999px; padding: 5px 16px; font-size: 14px; background: var(--blue); color: var(--blue-ink); font-weight: 500; }
+.pill-blue:hover { text-decoration: none; filter: brightness(1.08); }
+@media (max-width: 860px) { .nav-links .pill-link { display: none; } }
+
+/* hero */
+.hero { padding-block: 64px 0; text-align: center; }
+.hero .name { font-family: var(--display); font-size: 21px; font-weight: 600; color: var(--ink2); letter-spacing: -0.015em; }
+.hero h1 { font-size: clamp(46px, 7.4vw, 88px); line-height: 1.03; margin-top: 10px; letter-spacing: -0.035em; }
+.hero .sub { font-size: clamp(19px, 1.9vw, 23px); color: var(--ink2); max-width: 32em; margin: 20px auto 0; line-height: 1.38; }
+.cta { display: flex; gap: 28px; justify-content: center; align-items: center; margin-top: 30px; flex-wrap: wrap; }
+.btn-blue { background: var(--blue); color: var(--blue-ink); border-radius: 999px; padding: 12px 24px; font-size: 17px; font-weight: 500; }
+.btn-blue:hover { text-decoration: none; filter: brightness(1.08); }
+.btn-link { font-size: 17px; }
+.film-wrap { padding-block: 52px 0; }
+.film { position: relative; max-width: var(--wide); margin: 0 auto; }
+.film video { width: 100%; aspect-ratio: 16 / 9; border-radius: var(--r-lg); display: block; background: var(--media); object-fit: cover; }
+.sound-toggle {
+  position: absolute; right: 16px; bottom: 16px; border: 0; border-radius: 999px; padding: 8px 15px; font-size: 13px; font-weight: 500;
+  background: rgba(29, 29, 31, 0.62); color: #ffffff; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+}
+.film-cap { text-align: center; color: var(--ink2); font-size: 15px; margin: 16px auto 0; max-width: 46em; }
+
+/* sections */
+.band { background: var(--band); }
+.section { padding-block: var(--sec); }
+.eyebrow { font-size: 17px; font-weight: 600; color: var(--ink2); text-align: center; letter-spacing: -0.01em; }
+.section h2 { font-size: clamp(36px, 5vw, 56px); line-height: 1.07; text-align: center; margin-top: 8px; }
+.lead { font-size: clamp(17px, 1.6vw, 21px); color: var(--ink2); text-align: center; max-width: var(--copy); margin: 18px auto 0; line-height: 1.42; }
+.lead strong { color: var(--ink); font-weight: 500; }
+
+/* real-robot clips */
+.clips { max-width: var(--wide); margin: 56px auto 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.clip { background: var(--card); border-radius: var(--r-lg); overflow: hidden; display: grid; align-content: start; min-width: 0; }
+.clip video { width: 100%; aspect-ratio: 16 / 9; display: block; background: #000000; }
+.clip .body { padding: 22px 24px 26px; display: grid; gap: 8px; }
+.clip .tag { font-size: 12px; font-weight: 600; color: var(--ink2); letter-spacing: 0.02em; text-transform: uppercase; }
+.clip h3 { font-size: 24px; line-height: 1.15; }
+.clip p { color: var(--ink2); font-size: 16px; }
+
+/* web demo */
+.app { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: stretch; margin-top: 56px; }
+.player { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-content: start; min-width: 0; }
+.stage { position: relative; background: var(--media); border-radius: var(--r-lg); overflow: hidden; aspect-ratio: 16 / 11; max-width: 100%; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.caption {
+  position: absolute; left: 16px; top: 16px; display: grid; gap: 2px; padding: 9px 14px; border-radius: 14px;
+  background: var(--overlay); font-size: 14px; pointer-events: none; max-width: calc(100% - 32px);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+}
+.caption p { display: flex; gap: 8px; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.caption .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; background: var(--hatch); }
+.caption .music.on .dot { background: var(--blue); }
+.caption .robot .dot { background: var(--robot-fill); }
+.stage-hint { position: absolute; right: 18px; bottom: 14px; font-size: 13px; color: var(--ink2); pointer-events: none; }
+.bar { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: center; background: var(--media); border-radius: 999px; padding: 8px 22px 8px 8px; }
+.big { width: 52px; height: 52px; border-radius: 50%; border: 0; background: var(--blue); color: var(--blue-ink); display: grid; place-items: center; transition: transform 0.15s ease; }
+.big:active { transform: scale(0.95); }
+.big:disabled { opacity: 0.5; cursor: progress; }
+.big svg { width: 20px; height: 20px; fill: currentColor; }
+.bar-main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; min-width: 0; }
+.bar-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.bar-top h2 { font-family: var(--text); font-size: 15px; font-weight: 600; letter-spacing: -0.01em; min-width: 0; text-align: left; margin: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.time { font-family: var(--mono); font-size: 12px; color: var(--ink2); font-variant-numeric: tabular-nums; flex: none; }
+.progress { position: relative; height: 6px; border-radius: 3px; background: var(--fill); overflow: hidden; }
+.progress .seg { position: absolute; top: 0; bottom: 0; }
+.seg.silence { background: repeating-linear-gradient(135deg, transparent 0 3px, color-mix(in srgb, var(--hatch) 55%, transparent) 3px 4px); }
+.progress .fill { position: absolute; left: 0; top: 0; bottom: 0; background: color-mix(in srgb, var(--ink) 25%, transparent); width: 0; }
+.under { display: flex; gap: 8px 20px; align-items: baseline; justify-content: space-between; flex-wrap: wrap; padding-inline: 8px; }
+.hint { color: var(--ink2); font-size: 15px; min-height: 1.47em; max-width: 60ch; }
+.link { background: none; border: 0; padding: 0; color: var(--blue); font-size: 15px; }
+.link:hover { text-decoration: underline; }
+.library { position: relative; min-width: 0; background: var(--media); border-radius: var(--r-lg); }
+.library-inner { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 14px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--fill); border-radius: 12px; flex: none; }
+.tab { flex: 1 1 auto; border: 0; background: transparent; border-radius: 9px; padding: 6px 10px; white-space: nowrap; font-size: 13px; font-weight: 500; color: var(--ink); }
+.tab .n { font-family: var(--mono); font-size: 11px; margin-left: 5px; color: var(--ink2); }
+.tab[aria-selected="true"] { background: var(--card); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
+.tab-note { padding: 14px 6px 6px; font-size: 14px; color: var(--ink2); flex: none; line-height: 1.4; }
+.list { list-style: none; margin: 0; padding: 4px 0 0; overflow-y: auto; flex: 1; min-height: 0; display: grid; align-content: start; gap: 6px; }
+.group { font-size: 12px; font-weight: 600; letter-spacing: 0.02em; color: var(--ink2); padding: 10px 6px 0; }
+.row { width: 100%; display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 12px; align-items: center; text-align: left;
+  border: 0; background: var(--card); border-radius: 14px; padding: 11px 14px; transition: box-shadow 0.2s ease; }
+.row:hover { box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08); }
+.row.current { box-shadow: inset 0 0 0 2px var(--blue); }
+.row.current .title { color: var(--blue); }
+.shape { position: relative; height: 8px; border-radius: 4px; background: var(--fill); overflow: hidden; }
+.shape .seg { position: absolute; top: 0; bottom: 0; }
+.row .text { display: grid; min-width: 0; }
+.row .title { font-weight: 600; font-size: 15px; line-height: 1.3; overflow-wrap: anywhere; }
+.row .sub { font-size: 13px; color: var(--ink2); line-height: 1.35; overflow-wrap: anywhere; }
+.row .sub .fresh { color: var(--fresh); }
+.row .dur { font-family: var(--mono); font-size: 12px; color: var(--ink2); font-variant-numeric: tabular-nums; }
+.empty { padding: 8px 6px; font-size: 14px; color: var(--ink2); }
+
+/* how it works */
+.steps { list-style: none; margin: 56px auto 0; padding: 0; max-width: var(--mid); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.step { background: var(--card); border-radius: var(--r-lg); padding: 30px 28px 32px; display: grid; gap: 10px; align-content: start; }
+.step .k { font-family: var(--mono); font-size: 13px; color: var(--ink2); }
+.step h3 { font-size: 26px; line-height: 1.12; }
+.step p { color: var(--ink2); font-size: 16px; line-height: 1.45; }
+.step p strong { color: var(--ink); font-weight: 500; }
+
+/* closer look */
+.look { max-width: var(--mid); margin: 56px auto 0; background: var(--media); border-radius: var(--r-lg); padding: 30px 28px 26px; }
+.look-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.look-head h3 { font-family: var(--text); font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--ink2); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.timeline { position: relative; display: grid; gap: 8px; user-select: none; cursor: pointer; touch-action: none; padding-top: 22px; }
+.lane { display: grid; grid-template-columns: 4.2rem 1fr; gap: 12px; align-items: center; }
+.lane .label { font-size: 13px; color: var(--ink2); }
+.track { position: relative; height: 34px; border-radius: 8px; background: var(--card); overflow: hidden; }
+.track .seg { display: flex; align-items: center; padding-left: 8px; overflow: hidden; font-size: 12px; white-space: nowrap; color: #ffffff; position: absolute; top: 0; bottom: 0; font-weight: 500; }
+.track .seg.silence { color: var(--ink2); }
+.robot-lane .seg.music { opacity: 0.18; }
+.activity { position: absolute; inset: 0; width: 100%; height: 100%; }
+.activity path { fill: color-mix(in srgb, var(--robot-fill) 50%, transparent); stroke: var(--robot-fill); stroke-width: 1.3; vector-effect: non-scaling-stroke; }
+.marks { position: absolute; left: calc(4.2rem + 12px); right: 0; top: 0; height: 100%; pointer-events: none; }
+.mark { position: absolute; top: 0; bottom: 0; border-left: 1px dashed var(--ink2); opacity: 0.7; }
+.mark span { position: absolute; top: 0; left: 5px; font-size: 12px; color: var(--ink2); white-space: nowrap; }
+.mark.before span { left: auto; right: 5px; }
+.playhead { position: absolute; top: 16px; bottom: 0; width: 2px; border-radius: 1px; background: var(--ink); left: 0; }
+.axis { position: relative; height: 18px; margin-left: calc(4.2rem + 12px); font-family: var(--mono); font-size: 11px; color: var(--ink2); }
+.axis span { position: absolute; transform: translateX(-50%); font-variant-numeric: tabular-nums; }
+.facts { list-style: none; margin: 32px auto 0; padding: 0; max-width: var(--mid); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 40px; }
+.facts li { font-size: 15px; color: var(--ink2); line-height: 1.5; }
+.facts strong { display: block; color: var(--ink); font-weight: 600; margin-bottom: 4px; font-size: 17px; }
+.sound { text-align: center; font-size: 13px; color: var(--ink2); margin-top: 28px; }
+
+/* your song */
+.request { max-width: var(--copy); margin: 0 auto; text-align: center; display: grid; gap: 22px; justify-items: center; }
+.request .lead { margin-top: 0; }
+.status { display: inline-block; font-size: 14px; color: var(--ink2); background: var(--card); border-radius: 999px; padding: 8px 18px; }
+.ask { font-size: 15px; color: var(--ink2); }
+.code-form { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.code-form input { font: inherit; font-size: 16px; color: var(--ink); background: var(--card); border: 1px solid var(--hair); border-radius: 999px; padding: 8px 16px; min-width: 0; width: 220px; }
+.code-form .btn-quiet { justify-self: auto; }
+.code-line { font-size: 14px; color: var(--ink2); }
+.code-line .link { font-size: 14px; }
+.send-grid { max-width: var(--mid); margin: 48px auto 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 16px; align-items: start; }
+.send-grid:not(:has(> :not([hidden]))) { display: none; }
+.send-card { background: var(--card); border-radius: var(--r-lg); padding: 28px; display: grid; gap: 14px; min-width: 0; }
+.send-card h3 { font-size: 22px; margin-bottom: 4px; }
+#send-form { display: grid; gap: 14px; }
+#send-form.full .drop, #send-form.full .pick { opacity: 0.45; pointer-events: none; }
+.drop { display: grid; gap: 4px; justify-items: center; text-align: center; border: 1.5px dashed var(--hair); border-radius: 18px; padding: 26px 16px; cursor: pointer; }
+.drop:hover, .drop:focus-within { border-color: var(--blue); }
+.drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.drop-main { color: var(--blue); font-weight: 500; font-size: 17px; }
+.drop-sub { color: var(--ink2); font-size: 13px; }
+.pick { display: grid; gap: 12px; }
+.file-line { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; min-width: 0; }
+.file-line span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mono { font-family: var(--mono); font-size: 13px; color: var(--ink2); }
+.field { display: grid; gap: 6px; font-size: 14px; color: var(--ink2); }
+.field .opt { font-size: 12px; }
+.field input[type="text"] { font: inherit; font-size: 16px; color: var(--ink); background: var(--band); border: 1px solid var(--hair); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+.field input[type="range"] { width: 100%; accent-color: var(--blue); }
+.window { margin-top: -6px; }
+.btn-quiet { justify-self: start; background: var(--fill); border: 0; border-radius: 999px; padding: 8px 16px; font-size: 14px; }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; color: var(--ink2); line-height: 1.4; }
+.check input { margin-top: 3px; accent-color: var(--blue); }
+#send-go { justify-self: start; border: 0; }
+#send-go:disabled { opacity: 0.4; cursor: default; filter: none; }
+.send-msg { font-size: 14px; color: var(--ink2); min-height: 1.2em; }
+.mine-note { font-size: 14px; color: var(--ink2); }
+.mine-note:empty { display: none; }
+.mine-list, .queue ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.mine-row { display: flex; align-items: center; gap: 12px; background: var(--band); border-radius: 16px; padding: 12px 14px; }
+.mine-row .text { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.mine-row .title { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mine-row .sub { font-size: 13px; color: var(--ink2); }
+.mine-row.ready .sub { color: var(--fresh); }
+.btn-small { background: var(--blue); color: var(--blue-ink); border: 0; border-radius: 999px; padding: 6px 14px; font-size: 14px; flex: none; }
+.queue { border-top: 1px solid var(--hair); padding-top: 14px; display: grid; gap: 10px; }
+.queue h4 { font-size: 14px; color: var(--ink2); font-weight: 500; }
+.queue li { font-size: 13px; color: var(--ink2); }
+.queue-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+footer { padding-block: 36px 48px; font-size: 12px; color: var(--ink2); }
+footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px solid var(--hair); padding-top: 20px; }
+
+@media (max-width: 1068px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .library-inner { position: static; }
+  .list { overflow: visible; }
+  .clips { grid-template-columns: minmax(0, 1fr); max-width: 680px; }
+}
+@media (max-width: 734px) {
+  .hero { padding-top: 44px; }
+  .film video { border-radius: 20px; }
+  .stage { aspect-ratio: 1 / 1; border-radius: 22px; }
+  .steps { grid-template-columns: minmax(0, 1fr); }
+  .facts { grid-template-columns: minmax(0, 1fr); }
+  .mark span { display: none; }
+  .look { padding: 22px 16px 18px; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .big, .row { transition: none; } }
+</style>
+</head>
+<body>
+
+
+<div class="nav-wrap gutter">
+  <nav class="nav" aria-label="Page">
+    <a class="brand" href="#top">AHEADance</a>
+    <div class="nav-links">
+      <a class="pill-link" href="#robot">Real robot</a>
+      <a class="pill-link" href="#demo">Web demo</a>
+      <a class="pill-link" href="#how">How it works</a>
+      <a class="pill-link" href="#yours">Your song</a>
+      <a class="pill-blue" href="#demo">Try it</a>
+    </div>
+  </nav>
+</div>
+
+<main id="top">
+  <header class="hero gutter">
+    <p class="name">AHEADance</p>
+    <h1>Dances to what<br>it hears.</h1>
+    <p class="sub">A humanoid robot that dances to music as it plays, settles when the music stops, and dances again when it returns.</p>
+    <div class="cta">
+      <a class="btn-blue" href="#demo">Try the web demo</a>
+      <a class="btn-link" href="#robot">Watch the real robot ›</a>
+    </div>
+  </header>
+
+  <section class="film-wrap gutter" aria-label="Film">
+    <figure class="film">
+      <video id="film" src="media/styles_grid.mp4" poster="media/styles_grid.jpg" autoplay muted loop playsinline preload="metadata"></video>
+      <button class="sound-toggle" id="film-sound" type="button">Sound on</button>
+    </figure>
+    <p class="film-cap">A Unitree G1 dancing to eight songs in seven styles, each played from an audio file. One model for all of them; it is never told the style.</p>
+  </section>
+
+  <section class="band section gutter" id="robot" aria-labelledby="robot-h">
+    <p class="eyebrow">Real Unitree G1</p>
+    <h2 id="robot-h">Music in the room. A robot that listens.</h2>
+    <p class="lead">A loudspeaker plays the music and a microphone picks it up. <strong>The robot dances while the music plays, stands while it is silent, and starts again when the music returns.</strong></p>
+    <div class="clips">
+      <article class="clip">
+        <video src="media/mic_dai_locking.mp4" poster="media/mic_dai_locking.jpg" controls playsinline preload="none"></video>
+        <div class="body">
+          <span class="tag">Microphone · two songs</span>
+          <h3>The music stops. Then a new song.</h3>
+          <p>Dai folk music, then silence, then Locking. The robot comes to rest in the silence and dances again to the new song.</p>
+        </div>
+      </article>
+      <article class="clip">
+        <video src="media/mic_swoop.mp4" poster="media/mic_swoop.jpg" controls playsinline preload="none"></video>
+        <div class="body">
+          <span class="tag">Microphone · unseen music</span>
+          <h3>A song it never trained on.</h3>
+          <p>Swoop, a Popping track from the test set, through the same loudspeaker and microphone.</p>
+        </div>
+      </article>
+      <article class="clip">
+        <video src="media/stop_aligned.mp4" poster="media/stop_aligned.jpg" controls playsinline preload="none" muted loop></video>
+        <div class="body">
+          <span class="tag">Audio files · eight runs</span>
+          <h3>Every run stops with the music.</h3>
+          <p>Eight real-robot runs lined up at the moment their music stops. Each one goes quiet.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section gutter" id="demo" aria-labelledby="demo-h">
+    <p class="eyebrow">Web demo</p>
+    <h2 id="demo-h">Play it in your browser.</h2>
+    <p class="lead">Pick a dance from the list. The music plays here, and a model of the robot replays what the model generated for exactly that audio, 1.24 s behind the music as on the real robot.</p>
+    <div class="inner app">
+      <div class="player">
+        <div class="stage" id="stage">
+          <canvas id="view" aria-label="3D view of the robot. Drag to turn it, scroll or pinch to zoom."></canvas>
+          <div class="caption" aria-hidden="true">
+            <p class="music" id="cap-music"><span class="dot"></span><span id="cap-music-text">Loading the robot…</span></p>
+            <p class="robot"><span class="dot"></span><span id="cap-robot-text">Robot: standing</span></p>
+          </div>
+          <p class="stage-hint" id="stage-hint">Drag to turn</p>
+        </div>
+        <div class="bar">
+          <button class="big" id="main" type="button" aria-label="Play" disabled></button>
+          <div class="bar-main">
+            <div class="bar-top">
+              <h2 id="title">—</h2>
+              <span class="time" id="time">0:00 / 0:00</span>
+            </div>
+            <div class="progress" id="progress" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="under">
+          <p class="hint" id="hint" aria-live="polite"></p>
+          <button class="link" id="over" type="button">Start over</button>
+        </div>
+      </div>
+      <aside class="library" aria-label="Set list">
+        <div class="library-inner">
+          <div class="tabs" id="tabs" role="tablist" aria-label="Kinds of dance"></div>
+          <p class="tab-note" id="tab-note"></p>
+          <div class="tab-note" id="own" hidden>
+            <p>Send us up to 20 s of music and we add the robot's dance to this list. <a href="#yours">How it works</a></p>
+          </div>
+          <ul class="list" id="list"></ul>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="band section gutter" id="how" aria-labelledby="how-h">
+    <p class="eyebrow">How it works</p>
+    <h2 id="how-h">Listen. Generate. Move.</h2>
+    <p class="lead">One model turns the music it has already heard into the robot's next movements. <strong>It is never told the style, the tempo, or when a song ends.</strong></p>
+    <ol class="steps">
+      <li class="step"><span class="k">1 · Listen</span><h3>Only what it has heard.</h3><p>Music features are computed from audio the system has already received. Nothing from later in the song is used.</p></li>
+      <li class="step"><span class="k">2 · Generate</span><h3>30 frames a second.</h3><p>A frozen dance generator turns those features into motion for the 29 joints of a Unitree G1, starting from standing.</p></li>
+      <li class="step"><span class="k">3 · Move</span><h3>1.24 s later.</h3><p>The robot executes each frame <strong>1.24 s after the music it came from</strong>. The web demo replays every dance with the same delay.</p></li>
+    </ol>
+  </section>
+
+  <section class="section gutter" id="look" aria-labelledby="look-h">
+    <p class="eyebrow">Take a closer look</p>
+    <h2 id="look-h">Music in. Motion out.</h2>
+    <p class="lead">The dance loaded in the web demo, on one timeline. When the music stops, the robot's activity falls away; when it returns, the robot picks up again.</p>
+    <div class="look">
+      <div class="look-head">
+        <h3 id="look-title">Loaded dance</h3>
+        <div class="legend"><span><i style="background: var(--song-1)"></i>Music</span><span><i style="background: var(--robot-fill)"></i>Robot activity (mean joint speed)</span></div>
+      </div>
+      <div class="timeline" id="timeline" aria-label="Timeline of the loaded dance. Click to jump.">
+        <div class="marks" id="marks"></div>
+        <div class="lane"><span class="label">Music</span><div class="track" id="track-music"></div></div>
+        <div class="lane robot-lane"><span class="label">Robot</span><div class="track" id="track-robot"></div></div>
+        <div class="axis" id="axis"></div>
+        <div class="playhead" id="playhead"></div>
+      </div>
+    </div>
+    <ul class="facts">
+      <li><strong>One run, exactly this audio.</strong>Every dance in the web demo is one run of the deployed model (seed 1234) on the audio you hear. Nothing is cut together from other runs.</li>
+      <li><strong>Generated motion.</strong>The web demo shows the motion the model generated. It is not the joint angles measured on the real robot.</li>
+      <li><strong>Robot status.</strong>The label on the stage comes from the joint speed of that motion: below 0.12 rad/s is standing, above 0.25 rad/s is dancing.</li>
+      <li><strong>Styles are only labels.</strong>Style names are the FineDance music labels. The model only hears the music.</li>
+    </ul>
+    <p class="sound" id="sound-status"></p>
+  </section>
+
+  <section class="band section gutter" id="yours" aria-labelledby="yours-h">
+    <div class="request">
+      <p class="eyebrow">Your song</p>
+      <h2 id="yours-h">Send us 20 seconds.</h2>
+      <p class="lead">We put 2 s of silence before your music and 4 s after it, so the robot starts and ends standing. Then we run the same model on it on a cloud GPU, and the dance appears in your web demo under Your song. Only you and our lab see your songs.</p>
+      <p class="status" id="own-status">Sending a song needs an access code.</p>
+      <form class="code-form" id="code-form" hidden>
+        <input type="text" id="code-input" placeholder="Access code" autocomplete="off" spellcheck="false" aria-label="Access code">
+        <button type="submit" class="btn-quiet">Use code</button>
+      </form>
+      <p class="code-line" id="code-line" hidden><span id="code-who"></span> · <button type="button" class="link" id="code-forget">Use another code</button></p>
+      <div class="ask" id="own-ask" hidden></div>
+    </div>
+    <div class="send-grid">
+      <form class="send-card" id="send" hidden novalidate>
+        <div id="send-form">
+          <h3>Send a song</h3>
+          <label class="drop" id="send-drop">
+            <input type="file" id="send-file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac">
+            <span class="drop-main">Choose a music file</span>
+            <span class="drop-sub">MP3, WAV, M4A … up to 60 MB. Only the 20 s you pick are sent.</span>
+          </label>
+          <div class="pick" id="send-pick" hidden>
+            <p class="file-line"><span id="send-file-name"></span><span class="mono" id="send-file-len"></span></p>
+            <label class="field">Start of the part to send
+              <input type="range" id="send-start" min="0" max="0" step="0.1" value="0">
+            </label>
+            <p class="window mono" id="send-window"></p>
+            <button type="button" class="btn-quiet" id="send-listen">Listen to this part</button>
+            <label class="field">Song name<input type="text" id="send-name" maxlength="60" autocomplete="off"></label>
+            <label class="field">Style <span class="opt">optional, only shown to you</span><input type="text" id="send-style" maxlength="40" placeholder="e.g. K-pop, waltz" autocomplete="off"></label>
+            <label class="check"><input type="checkbox" id="send-ok"><span>I may share this music with the AHEADance team for this test.</span></label>
+            <button type="submit" class="btn-blue" id="send-go" disabled>Send</button>
+          </div>
+          <p class="send-msg" id="send-msg" aria-live="polite"></p>
+        </div>
+      </form>
+      <div class="send-card" id="mine" hidden>
+        <h3>Your songs</h3>
+        <p class="mine-note" id="mine-note"></p>
+        <ul class="mine-list" id="mine-list"></ul>
+        <div class="queue" id="queue" hidden>
+          <h4>Everyone's songs (lab only)</h4>
+          <ul id="queue-list"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="gutter">
+  <div class="inner">
+    <p>AHEADance · project page prototype.</p>
+    <p>Robot: Unitree G1, 29 DoF (model from unitree_ros, BSD-3-Clause). Music: FineDance excerpts, and one melody made with Suno for this test.</p>
+  </div>
+</footer>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module" src="js/app.js"></script>
+
+</body>
+</html>
