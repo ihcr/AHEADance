@@ -425,7 +425,7 @@ function liveEnd() {
 }
 function liveUI(t) {
   const playing = L.playing(), robot = L.robot(t), hint = L.hint(t);
-  const mode = playing ? 'pause' : 'play', label = playing ? 'Pause the music' : 'Play the music';
+  const mode = playing ? 'pause' : 'play', label = L.mainLabel ? L.mainLabel() : playing ? 'Pause the music' : 'Play the music';
   const key = ['live', L.title, L.music(), robot, mode, hint].join('|');
   if (key !== lastUI) {
     lastUI = key;

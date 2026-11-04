@@ -6,6 +6,11 @@
 // exactly those samples (16-bit stereo, 0.1 s per message) to the live server; paused music is digital silence.
 // The server sends back one 16-frame chunk of motion (0.533 s at 30 fps) at a time. Frame f is shown when the
 // stream clock (what the speakers are playing) reaches f / 30 + 1.24 s.
+//
+// Microphone (beta, user 11-04 for the advisor): the music plays on another device, such as a phone, and the
+// computer's microphone streams what it hears (browser echo cancelling, noise suppression and gain control off; the
+// microphone is never played back here). The server runs the real robot's microphone chain on it, which spends the
+// first 4.7 s learning the room. Nothing is kept unless the visitor ticks the box.
 import { CLIENT, store } from './requests.js';
 
 export const LIVE = 'wss://pengtianhu--aheadance-live-web.us-east.modal.run/ws';
@@ -44,11 +49,13 @@ registerProcessor('aheadance-tap', Tap);`;
 
 export function initLive(api) {
   const el = Object.fromEntries(['live', 'live-signin', 'live-who', 'live-who-text', 'live-forget',
-    'live-file', 'live-file-name', 'live-go', 'live-music', 'live-end', 'live-status', 'live-stats']
+    'live-file', 'live-file-name', 'live-go', 'live-music', 'live-end', 'live-status', 'live-stats',
+    'live-src-file', 'live-src-mic', 'live-mic', 'live-keep', 'live-drop']
     .map((k) => [k.replace(/-(\w)/g, (_, c) => c.toUpperCase()), $(k)]));
   const S = { code: store.get(), buffer: null, name: '', ctx: null, tap: null, src: null, ws: null, state: 'idle',
     first: -1, max: 180, delay: 1.24, frames: null, have: 0, music: [], playing: false, pos: 0, startedAt: 0,
-    late: 0, rx: [], done: null };
+    late: 0, rx: [], done: null, source: 'file', mic: null, micNode: null, out: null, level: -120, room: 0 };
+  const isMic = () => S.source === 'microphone';
 
   // ---- signed in? (the same sign-in as Your song: an email token or an access code)
   function showCode() {
@@ -80,6 +87,19 @@ export function initLive(api) {
     buttons();
   });
 
+  // ---- music file or microphone
+  function setSource(src) {
+    if (['connecting', 'warming', 'live'].includes(S.state)) return;
+    S.source = src;
+    el.liveSrcFile.setAttribute('aria-pressed', String(src === 'file'));
+    el.liveSrcMic.setAttribute('aria-pressed', String(src === 'microphone'));
+    el.liveDrop.hidden = src !== 'file';
+    el.liveMic.hidden = src !== 'microphone';
+    buttons();
+  }
+  el.liveSrcFile.addEventListener('click', () => setSource('file'));
+  el.liveSrcMic.addEventListener('click', () => setSource('microphone'));
+
   function context() {
     if (!S.ctx) S.ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: SR });
     if (S.ctx.state === 'suspended') S.ctx.resume().catch(() => {});
@@ -89,8 +109,9 @@ export function initLive(api) {
   function buttons() {
     const live = ['connecting', 'warming', 'live'].includes(S.state);
     el.liveGo.hidden = live;
-    el.liveGo.disabled = !S.code || !S.buffer;
-    el.liveMusic.hidden = S.state !== 'live';
+    el.liveGo.disabled = !S.code || (!isMic() && !S.buffer);
+    el.liveMusic.hidden = S.state !== 'live' || isMic();
+    el.liveSrcFile.disabled = el.liveSrcMic.disabled = live;
     el.liveMusic.textContent = S.playing ? 'Pause the music' : 'Play the music';
     el.liveEnd.hidden = !live;
     el.liveFile.disabled = live;
@@ -149,7 +170,7 @@ export function initLive(api) {
 
   // ---- a session
   async function go() {
-    if (!S.code || !S.buffer) return;
+    if (!S.code || (!isMic() && !S.buffer)) return;
     api.begin(controller);
     const ctx = context();
     Object.assign(S, { state: 'connecting', first: -1, have: 0, music: [], playing: false, pos: 0, late: 0, rx: [],
@@ -162,20 +183,41 @@ export function initLive(api) {
         const url = URL.createObjectURL(new Blob([WORKLET], { type: 'text/javascript' }));
         await ctx.audioWorklet.addModule(url);
         S.tap = new AudioWorkletNode(ctx, 'aheadance-tap', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2] });
-        S.tap.connect(ctx.destination);
+        S.out = ctx.createGain();
+        S.tap.connect(S.out);
+        S.out.connect(ctx.destination);
       }
     } catch (e) {
       return finish(`This browser cannot run the live mode (${e.message}).`);
     }
     if (ctx.sampleRate !== SR) return finish('This browser cannot play audio at 48 kHz, which the live mode needs.');
+    S.out.gain.value = isMic() ? 0 : 1;           // the microphone is never played back (no feedback)
+    if (isMic()) {
+      status('Asking to use the microphone…');
+      try {
+        S.mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false,
+          autoGainControl: false, channelCount: 1 } });
+        S.micNode = ctx.createMediaStreamSource(S.mic);
+        S.micNode.connect(S.tap);
+      } catch (e) {
+        return finish(e && e.name === 'NotAllowedError' ? 'The microphone was not allowed. Allow it in the browser and go live again.'
+          : `This browser cannot use the microphone here (${e && e.message ? e.message : e}). Chrome works best.`);
+      }
+      status('Connecting to the live server…');
+    }
     S.tap.port.onmessage = (e) => {
       if (e.data && e.data.first !== undefined) { S.first = e.data.first; return; }
+      const a = new Int16Array(e.data);
+      let p = 0;
+      for (let i = 0; i < a.length; i += 2) p += a[i] * a[i];
+      S.level = 10 * Math.log10(p / Math.max(1, a.length / 2) / 1073741824 + 1e-12);   // dBFS of this 0.1 s
       send(e.data);
     };
     const ws = new WebSocket(LIVE);
     ws.binaryType = 'arraybuffer';
     S.ws = ws;
-    ws.onopen = () => ws.send(JSON.stringify({ type: 'hello', code: S.code, client: CLIENT }));
+    ws.onopen = () => ws.send(JSON.stringify({ type: 'hello', code: S.code, client: CLIENT, source: S.source,
+      keep: isMic() && el.liveKeep.checked }));
     ws.onmessage = (e) => {
       if (S.ws !== ws) return;
       if (typeof e.data !== 'string') return chunk(e.data);
@@ -185,9 +227,14 @@ export function initLive(api) {
         status(`Starting the cloud GPU… ${m.seconds} s (the first visitor in a while waits about a minute)`);
       } else if (m.type === 'ready') {
         Object.assign(S, { state: 'live', max: m.seconds, delay: m.delay, frames: new Float32Array(m.seconds * FPS * CH + 16 * CH) });
-        status('Live. The robot starts standing; the music starts in a moment.');
         S.tap.port.postMessage('start');
-        setTimeout(() => { if (S.state === 'live' && S.ws === ws) musicOn(); }, LEAD * 1000);
+        if (isMic()) {
+          S.room = m.room_seconds || 0;
+          status('Live. Keep the room quiet for 5 seconds, then play music on your phone near this computer.');
+        } else {
+          status('Live. The robot starts standing; the music starts in a moment.');
+          setTimeout(() => { if (S.state === 'live' && S.ws === ws) musicOn(); }, LEAD * 1000);
+        }
       } else if (m.type === 'done') {
         if (m.error) el.liveStats.textContent = m.error;
         finish(m.reason === 'the music stopped arriving'
@@ -213,13 +260,16 @@ export function initLive(api) {
       const sorted = [...S.rx].sort((a, b) => a - b), med = sorted[sorted.length >> 1];
       el.liveStats.textContent = med > S.delay
         ? `The motion is arriving ${med.toFixed(1)} s after the music, later than the ${S.delay.toFixed(2)} s it is shown at, so the robot may stall. A slow connection or a busy device can cause this.`
-        : `Motion arrives ${med.toFixed(2)} s after the music it answers (shown at ${S.delay.toFixed(2)} s) · feature lag ${lag.toFixed(2)} s`;
+        : `Motion arrives ${med.toFixed(2)} s after the music it answers (shown at ${S.delay.toFixed(2)} s) · feature lag ${lag.toFixed(2)} s`
+          + (isMic() ? ` · microphone ${S.level.toFixed(0)} dB` : '');
     }
   }
   function finish(message, reason) {
     const was = S.state;
     if (S.playing) musicOff();
     if (S.tap) S.tap.port.postMessage('stop');
+    if (S.micNode) { S.micNode.disconnect(); S.micNode = null; }
+    if (S.mic) { S.mic.getTracks().forEach((tr) => tr.stop()); S.mic = null; }
     S.state = 'idle';
     const ws = S.ws;
     S.ws = null;
@@ -263,14 +313,16 @@ export function initLive(api) {
     return a < STAND ? 'standing' : a > DANCE ? 'dancing' : a < b ? 'settling down' : 'starting to dance';
   }
   const controller = {
-    get title() { return `Live · ${S.name}`; },
+    get title() { return isMic() ? 'Live · microphone' : `Live · ${S.name}`; },
     get max() { return S.max; },
     now: streamTime,
     pose: (t) => frameAt((t - S.delay) * FPS),
-    music: () => (S.playing ? `Music: ${S.name}` : 'Music: off'),
-    playing: () => S.playing,
+    music: () => (isMic() ? `Microphone: ${S.level > -50 ? 'hearing sound' : 'quiet'}` : S.playing ? `Music: ${S.name}` : 'Music: off'),
+    playing: () => (isMic() ? S.state === 'live' && S.level > -50 : S.playing),
+    mainLabel: () => (isMic() ? 'End live' : S.playing ? 'Pause the music' : 'Play the music'),
     robot,
     segments(t) {                     // music on/off so far, on the stream clock
+      if (isMic()) return [];
       const out = [];
       for (let i = 0; i < S.music.length; i++) {
         if (!S.music[i].playing) continue;
@@ -285,15 +337,21 @@ export function initLive(api) {
       if (S.state !== 'live') return '';
       const r = robot(t), left = S.max - t;
       if (left < 15) return `The live session ends in ${Math.ceil(left)} s.`;
+      if (isMic()) {
+        if (t < S.room + 0.3) return `Listening to the room. Keep it quiet for ${Math.ceil(S.room + 0.3 - t)} s more.`;
+        if (r === 'standing') return S.level < -50 ? 'Now play music on your phone, near this computer.'
+          : 'The model is listening. The robot answers 1.24 s behind what it hears.';
+        return 'Stop the music or switch songs on your phone, and watch the robot follow.';
+      }
       if (!S.music.length) return 'The robot is standing. The music starts in a moment.';
       if (S.playing) return t - S.music[S.music.length - 1].at < S.delay + 0.3 ? 'The model is listening. The robot answers 1.24 s behind the music.'
         : 'Live. Pause the music any time and watch the robot react.';
       if (S.pos >= S.buffer.duration - 0.05) return r === 'standing' ? 'The music has ended and the robot is standing.' : 'The music has ended. The robot heard the silence and is settling.';
       return r === 'standing' ? 'Music paused. The robot is standing. Play the music again.' : 'Music paused. The robot heard the silence and is settling.';
     },
-    toggle() { if (S.state === 'live') (S.playing ? musicOff() : musicOn()); },
+    toggle() { if (S.state !== 'live') return; if (isMic()) finish(); else (S.playing ? musicOff() : musicOn()); },
     stop() { if (S.state !== 'idle') finish(); },
-    debug: () => ({ state: S.state, t: +streamTime().toFixed(2), have: S.have, late: S.late, playing: S.playing,
+    debug: () => ({ state: S.state, source: S.source, level: +S.level.toFixed(1), t: +streamTime().toFixed(2), have: S.have, late: S.late, playing: S.playing,
       queued: S.ws ? S.ws.bufferedAmount : 0, maxQueued: S.maxQueued,
       music: S.music.map((m) => [m.playing, +m.at.toFixed(2)]), rx: S.rx.slice(-8).map((x) => +x.toFixed(2)) }),
   };

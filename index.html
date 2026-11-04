@@ -209,6 +209,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .live .code-form input { width: 100%; flex: 1 1 140px; }
 .live-who { font-size: 13px; color: var(--ink2); }
 .live-signin { font-size: 14px; color: var(--ink); line-height: 1.4; }
+.live-source { display: flex; gap: 2px; padding: 3px; background: var(--fill); border-radius: 12px; }
+.seg-btn { flex: 1 1 0; border: 0; background: transparent; border-radius: 9px; padding: 6px 10px; font-size: 13px; font-weight: 500; color: var(--ink); }
+.seg-btn[aria-pressed="true"] { background: var(--card); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
+.live-mic { display: grid; gap: 10px; }
+.live-mic p { font-size: 13px; color: var(--ink2); line-height: 1.45; }
 .live-drop { padding: 18px 12px; }
 .live-drop .drop-main { font-size: 15px; }
 .live-drop .drop-sub { overflow-wrap: anywhere; }
@@ -480,9 +485,9 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
     <div class="live-card">
       <p class="live-eyebrow">Live</p>
       <h2 id="go-live-h">Bring your own music.</h2>
-      <p class="live-lead">Play any song from your device. Our model on a cloud GPU listens as it plays, and the robot dances to it 1.24 s behind the music, as on the real robot. Every session is a new dance.</p>
+      <p class="live-lead">Play any song from your device, or play it on your phone and let the page listen through the microphone. Our model on a cloud GPU listens as it plays, and the robot dances to it 1.24 s behind the music, as on the real robot. Every session is a new dance.</p>
       <ul class="live-facts">
-        <li><strong>Any song</strong>MP3, WAV, M4A … from your device</li>
+        <li><strong>Any song</strong>a music file, or your phone through the microphone (beta)</li>
         <li><strong>3 minutes</strong>per session</li>
         <li><strong>3 sessions</strong>a day for each email</li>
         <li><strong>About a minute</strong>to start the GPU if no one has used it for a while</li>
@@ -531,7 +536,15 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
             <p class="live-note">Play a music file here. Our model on a cloud GPU listens as it plays, and the robot dances 1.24 s behind the music, as on the real robot. Pause the music and the robot settles; play it again and the robot dances again.</p>
             <p class="live-signin" id="live-signin" hidden>To go live, <a href="#yours">sign in with your email</a> under Your song: 3 sessions a day, up to 3 minutes each.</p>
             <p class="live-who" id="live-who" hidden><span id="live-who-text"></span> · <button type="button" class="link" id="live-forget">Sign out</button></p>
-            <label class="drop live-drop">
+            <div class="live-source" role="group" aria-label="Where the music comes from">
+              <button type="button" class="seg-btn" id="live-src-file" aria-pressed="true">Music file</button>
+              <button type="button" class="seg-btn" id="live-src-mic" aria-pressed="false">Microphone (beta)</button>
+            </div>
+            <div class="live-mic" id="live-mic" hidden>
+              <p>Play music on another device, such as your phone, near this computer. Your browser will ask to use the microphone. Start quietly: the first 5 seconds let the model learn what your room sounds like.</p>
+              <label class="check"><input type="checkbox" id="live-keep"><span>Let the AHEADance lab keep this recording to improve the microphone mode.</span></label>
+            </div>
+            <label class="drop live-drop" id="live-drop">
               <input type="file" id="live-file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac">
               <span class="drop-main">Choose a music file</span>
               <span class="drop-sub" id="live-file-name">It plays here. Only its sound goes to the model while you are live, and we do not keep it.</span>
