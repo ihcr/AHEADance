@@ -26,6 +26,7 @@ Every dance in the web demo is one run of the deployed model (seed 1234) on exac
 - Every request needs an access code.
 - A lab code has no limit and sees everyone's songs.
 - A guest code can send 2 songs and sees only its own.
+- A shared guest code works for anyone who has it. Each browser counts as one person, with 2 songs, and sees only its own songs. All its users together send at most 10 songs a day.
 - The server adds 2 s of silence before the music and 4 s after it, runs the same model, and sends the dance back. This takes about two minutes.
 
 ## Local preview

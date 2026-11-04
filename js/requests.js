@@ -3,7 +3,9 @@
 // Access codes (we email them on request):
 //   lab code     no limit, and sees everyone's songs
 //   guest code   LIMIT songs, and sees only its own
-// A song is visible only with the code that sent it, and to the lab. The page sends the chosen part as a
+//   shared code  (e.g. "guest") anyone may use; each browser counts as its own person, with its own LIMIT songs
+// A song is visible only with the code that sent it, and to the lab. Every request also carries this browser's
+// random id (X-Client), which is how a shared code tells people apart. The page sends the chosen part as a
 // 48 kHz 16-bit stereo WAV; the server adds 2 s of silence before it and 4 s after it, and generates the dance.
 
 export const API = 'https://pengtianhu--aheadance-api.us-east.modal.run';
@@ -21,6 +23,17 @@ const store = {
   get() { try { return localStorage.getItem('aheadance-code') || ''; } catch { return ''; } },
   set(v) { try { v ? localStorage.setItem('aheadance-code', v) : localStorage.removeItem('aheadance-code'); } catch { /* storage unavailable */ } },
 };
+// this browser's random id; kept across visits (in memory only when storage is blocked)
+const CLIENT = (() => {
+  let id = '';
+  try { id = localStorage.getItem('aheadance-client') || ''; } catch { /* storage unavailable */ }
+  if (!/^[A-Za-z0-9-]{16,64}$/.test(id)) {
+    id = crypto.randomUUID ? crypto.randomUUID()
+      : Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
+    try { localStorage.setItem('aheadance-client', id); } catch { /* storage unavailable */ }
+  }
+  return id;
+})();
 
 // ------------------------------------------------------------------ audio helpers
 async function decodeFile(file) {
@@ -85,7 +98,7 @@ export function initRequests(api) {
   const S = { code: '', me: null, mine: [], all: [], decoded: null, file: null, busy: false, built: new Map(), timer: 0 };
 
   const call = async (path, opts = {}) => {
-    const r = await fetch(API + path, { ...opts, headers: { 'X-Code': S.code, ...(opts.headers || {}) } });
+    const r = await fetch(API + path, { ...opts, headers: { 'X-Code': S.code, 'X-Client': CLIENT, ...(opts.headers || {}) } });
     if (!r.ok) {
       let detail = `HTTP ${r.status}`;
       try { detail = (await r.json()).detail || detail; } catch { /* not JSON */ }
@@ -132,7 +145,8 @@ export function initRequests(api) {
     el.codeForm.hidden = true;
     el.ownAsk.hidden = true;
     el.codeLine.hidden = false;
-    el.codeWho.textContent = S.me.role === 'lab' ? 'Lab code' : `Code${S.me.label ? ` for ${S.me.label}` : ''}`;
+    el.codeWho.textContent = S.me.role === 'lab' ? 'Lab code' : S.me.shared ? 'Guest code'
+      : `Code${S.me.label ? ` for ${S.me.label}` : ''}`;
     el.send.hidden = false;
     el.mine.hidden = false;
     await refresh();
@@ -145,6 +159,7 @@ export function initRequests(api) {
     if (!S.code) return;
     try {
       S.mine = (await (await call('/api/songs')).json()).songs;
+      if (S.me.today_left !== undefined) S.me = await (await call('/api/me')).json();
       if (S.me.role === 'lab') S.all = (await (await call('/api/songs?all=1')).json()).songs;
     } catch (e) {
       el.mineNote.textContent = `Your songs could not be loaded (${e.message}).`;
@@ -157,10 +172,13 @@ export function initRequests(api) {
   // ---- my songs
   function render() {
     if (!S.me) return;
-    const n = S.mine.length, lab = S.me.role === 'lab', left = lab ? Infinity : Math.max(0, S.me.limit - n);
+    const n = S.mine.length, lab = S.me.role === 'lab', shared = S.me.shared;
+    const own = lab ? Infinity : Math.max(0, S.me.limit - n), today = S.me.today_left ?? Infinity;
+    const left = Math.min(own, today);
     setStatus(lab ? 'Lab code: send as many songs as you like. You also see everyone\'s songs.'
-      : left ? `You can send ${left} more song${left > 1 ? 's' : ''} (${S.me.limit} per code).`
-        : `This code has sent its ${S.me.limit} songs.`);
+      : !own ? (shared ? `You have sent your ${S.me.limit} songs.` : `This code has sent its ${S.me.limit} songs.`)
+        : !today ? 'The guest code has sent all its songs for today. Please try again tomorrow.'
+          : `You can send ${left} more song${left > 1 ? 's' : ''} (${S.me.limit} per ${shared ? 'person' : 'code'}).`);
     const full = left === 0;
     el.sendForm.classList.toggle('full', full);
     el.sendGo.disabled = full || S.busy || !S.decoded;
