@@ -144,7 +144,16 @@ export function initLive(api) {
     send(JSON.stringify({ type: 'music', playing, at: +at.toFixed(3) }));
     buttons();
   }
-  function send(x) { if (S.ws && S.ws.readyState === 1) S.ws.send(x); }
+  function send(x) {
+    if (!S.ws || S.ws.readyState !== 1) return;
+    S.ws.send(x);
+    const queued = S.ws.bufferedAmount;          // bytes the connection has not sent yet
+    S.maxQueued = Math.max(S.maxQueued, queued);
+    if (queued > SR * 4 && S.state === 'live' && !S.warned) {
+      S.warned = true;
+      el.liveStats.textContent = 'Your connection is not sending the music fast enough, so the robot may stall.';
+    }
+  }
 
   // ---- a session
   async function go() {
@@ -152,7 +161,8 @@ export function initLive(api) {
     api.begin(controller);
     const ctx = context();
     Object.assign(S, { state: 'connecting', first: -1, have: 0, music: [], playing: false, pos: 0, late: 0, rx: [],
-      done: null, frames: null });
+      done: null, frames: null, maxQueued: 0, warned: false });
+    el.liveStats.textContent = '';
     buttons();
     status('Connecting to the live server…');
     try {
@@ -187,7 +197,10 @@ export function initLive(api) {
         S.tap.port.postMessage('start');
         setTimeout(() => { if (S.state === 'live' && S.ws === ws) musicOn(); }, LEAD * 1000);
       } else if (m.type === 'done') {
-        finish(m.error ? `The live session stopped: ${m.error}` : null, m.reason);
+        if (m.error) el.liveStats.textContent = m.error;
+        finish(m.reason === 'the music stopped arriving'
+          ? 'The music stopped reaching our server, so the live session ended. A slow or busy connection can cause this.'
+          : m.error ? 'The live model stopped unexpectedly. Please go live again.' : null, m.reason);
       } else if (['busy', 'limit', 'error'].includes(m.type)) {
         finish(m.message || 'The live server refused the session.');
       }
@@ -218,7 +231,13 @@ export function initLive(api) {
     S.state = 'idle';
     const ws = S.ws;
     S.ws = null;
-    if (ws && ws.readyState <= 1) { try { ws.send(JSON.stringify({ type: 'end' })); } catch { /* closing */ } ws.close(); }
+    if (ws && ws.readyState <= 1) {
+      const sorted = [...S.rx].sort((a, b) => a - b);
+      const page = { max_queued_bytes: S.maxQueued, late_frames: S.late, arrival_median_s: sorted.length ? +sorted[sorted.length >> 1].toFixed(3) : null,
+        sample_rate: S.ctx ? S.ctx.sampleRate : null, output_latency_s: S.ctx ? S.ctx.outputLatency ?? null : null, agent: navigator.userAgent.slice(0, 160) };
+      try { ws.send(JSON.stringify({ type: 'end', page })); } catch { /* closing */ }
+      ws.close();
+    }
     S.first = -1;
     status(message || (was === 'live' ? `Live session ended${reason === 'longest session reached' ? ` (the longest is ${mmss(S.max)})` : ''}. Go live again any time.` : ''));
     buttons();
@@ -283,6 +302,7 @@ export function initLive(api) {
     toggle() { if (S.state === 'live') (S.playing ? musicOff() : musicOn()); },
     stop() { if (S.state !== 'idle') finish(); },
     debug: () => ({ state: S.state, t: +streamTime().toFixed(2), have: S.have, late: S.late, playing: S.playing,
+      queued: S.ws ? S.ws.bufferedAmount : 0, maxQueued: S.maxQueued,
       music: S.music.map((m) => [m.playing, +m.at.toFixed(2)]), rx: S.rx.slice(-8).map((x) => +x.toFixed(2)) }),
   };
 
