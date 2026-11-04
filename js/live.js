@@ -11,7 +11,7 @@
 // computer's microphone streams what it hears (browser echo cancelling, noise suppression and gain control off; the
 // microphone is never played back here). The server runs the real robot's microphone chain on it, which spends the
 // first 4.7 s learning the room. Nothing is kept unless the visitor ticks the box.
-import { CLIENT, store } from './requests.js?v=20261104d';   // same URL as app.js: one module
+import { CLIENT, store } from './requests.js?v=20261104e';   // same URL as app.js: one module
 
 export const LIVE = 'wss://pengtianhu--aheadance-live-web.us-east.modal.run/ws';
 const SR = 48000, FPS = 30, CH = 36, LEAD = 1.0, MAX_MB = 60;
@@ -107,7 +107,7 @@ export function initLive(api) {
       el.liveMicDevice.replaceChildren(...all.map((d, i) => Object.assign(document.createElement('option'),
         { value: d.deviceId, textContent: d.label || `Microphone ${i + 1}` })));
       if (keep && all.some((d) => d.deviceId === keep)) el.liveMicDevice.value = keep;
-      el.liveMicDevice.hidden = all.length < 2;
+      el.liveMicDevice.hidden = all.length < 1;
     } catch { /* no device list */ }
   }
   let testing = null;
@@ -132,6 +132,7 @@ export function initLive(api) {
     an.fftSize = 4096;
     src.connect(an);
     const buf = new Float32Array(an.fftSize);
+    const track = stream.getAudioTracks()[0], used = track && track.label ? `Using "${track.label}". ` : '';
     let zeros = 0, n = 0, timer = 0;
     const stopTest = () => { clearInterval(timer); src.disconnect(); stream.getTracks().forEach((tr) => tr.stop()); testing = null; el.liveMicTest.textContent = 'Test the microphone'; };
     testing = stopTest;
@@ -142,9 +143,9 @@ export function initLive(api) {
       for (const v of buf) p += v * v;
       const db = 10 * Math.log10(p / buf.length + 1e-12);
       zeros = p === 0 ? zeros + 1 : 0;
-      el.liveMicLevel.textContent = zeros >= 10
-        ? 'Pure silence: the microphone is blocked or the wrong one. Check the computer\'s microphone permission for the browser, or pick another microphone.'
-        : `Level ${db.toFixed(0)} dB · ${db > -50 ? 'hearing sound' : 'quiet room'}. Music from the phone should read above -40 dB.`;
+      el.liveMicLevel.textContent = used + (zeros >= 10
+        ? 'Pure silence: this input is muted, has nothing plugged in, or is blocked. Pick another microphone above, or check the computer\'s sound input settings (unmuted, level up) and its microphone permission for the browser.'
+        : `Level ${db.toFixed(0)} dB · ${db > -50 ? 'hearing sound' : 'quiet room'}. Music from the phone should read above -40 dB.`);
       if (++n > 150) stopTest();                 // 15 s
     }, 100);
   }
