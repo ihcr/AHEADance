@@ -163,6 +163,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .caption .music.on .dot { background: var(--blue); }
 .caption .robot .dot { background: var(--robot-fill); }
 .stage-hint { position: absolute; right: 18px; bottom: 14px; font-size: 13px; color: var(--ink2); pointer-events: none; }
+.live-viz { position: absolute; left: 12px; right: 12px; bottom: 12px; height: 104px; border-radius: 14px; pointer-events: none;
+  background: color-mix(in srgb, var(--card) 86%, transparent); box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08); }
+.stage .live-viz canvas { position: static; display: block; width: 100%; height: 100%; touch-action: auto; }
+@media (max-width: 734px) { .live-viz { height: 78px; left: 8px; right: 8px; bottom: 8px; } }
 .bar { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: center; background: var(--media); border-radius: 999px; padding: 8px 22px 8px 8px; }
 .big { width: 52px; height: 52px; border-radius: 50%; border: 0; background: var(--blue); color: var(--blue-ink); display: grid; place-items: center; transition: transform 0.15s ease; }
 .big:active { transform: scale(0.95); }
@@ -515,6 +519,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
             <p class="robot"><span class="dot"></span><span id="cap-robot-text">Robot: standing</span></p>
           </div>
           <p class="stage-hint" id="stage-hint">Drag to turn</p>
+          <div class="live-viz" id="live-viz-wrap" hidden aria-hidden="true"><canvas id="live-viz"></canvas></div>
         </div>
         <div class="bar">
           <button class="big" id="main" type="button" aria-label="Play" disabled></button>
@@ -675,7 +680,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
 } }
 </script>
-<script type="module" src="js/app.js?v=20261104h"></script>   <!-- bump v with every change to js/ (browsers cache 10 min) -->
+<script type="module" src="js/app.js?v=20261104j"></script>   <!-- bump v with every change to js/ (browsers cache 10 min) -->
 
 </body>
 </html>

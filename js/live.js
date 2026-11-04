@@ -11,7 +11,7 @@
 // computer's microphone streams what it hears (browser echo cancelling, noise suppression and gain control off; the
 // microphone is never played back here). The server runs the real robot's microphone chain on it, which spends the
 // first 4.7 s learning the room. Nothing is kept unless the visitor ticks the box.
-import { CLIENT, store } from './requests.js?v=20261104h';   // same URL as app.js: one module
+import { CLIENT, store } from './requests.js?v=20261104j';   // same URL as app.js: one module
 
 export const LIVE = 'wss://pengtianhu--aheadance-live-web.us-east.modal.run/ws';
 const SR = 48000, FPS = 30, CH = 36, LEAD = 1.0, MAX_MB = 60;
@@ -50,7 +50,8 @@ registerProcessor('aheadance-tap', Tap);`;
 export function initLive(api) {
   const el = Object.fromEntries(['live', 'live-signin', 'live-who', 'live-who-text', 'live-forget',
     'live-file', 'live-file-name', 'live-go', 'live-music', 'live-end', 'live-status', 'live-stats',
-    'live-src-file', 'live-src-mic', 'live-mic', 'live-keep', 'live-drop', 'live-mic-device', 'live-mic-test', 'live-mic-level']
+    'live-src-file', 'live-src-mic', 'live-mic', 'live-keep', 'live-drop', 'live-mic-device', 'live-mic-test', 'live-mic-level',
+    'live-viz-wrap', 'live-viz']
     .map((k) => [k.replace(/-(\w)/g, (_, c) => c.toUpperCase()), $(k)]));
   const S = { code: store.get(), buffer: null, name: '', ctx: null, tap: null, src: null, ws: null, state: 'idle',
     first: -1, max: 180, delay: 1.24, frames: null, have: 0, music: [], playing: false, pos: 0, startedAt: 0,
@@ -242,6 +243,10 @@ export function initLive(api) {
         S.tap = new AudioWorkletNode(ctx, 'aheadance-tap', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2] });
         S.out = ctx.createGain();
         S.tap.connect(S.out);
+        S.an = ctx.createAnalyser();                 // the stage strip's spectrum: the same samples the model gets
+        S.an.fftSize = 4096;
+        S.an.smoothingTimeConstant = 0.7;
+        S.tap.connect(S.an);
         S.out.connect(ctx.destination);
       }
     } catch (e) {
@@ -298,6 +303,7 @@ export function initLive(api) {
         Object.assign(S, { state: 'live', max: m.seconds, delay: m.delay, frames: new Float32Array(m.seconds * FPS * CH + 16 * CH),
           speed: new Float32Array(m.seconds * FPS + 16) });
         S.tap.port.postMessage('start');
+        el.liveVizWrap.hidden = false;
         if (isMic()) {
           S.room = m.room_seconds || 0;
           status('Live. Keep the room quiet for 5 seconds, then play music on your phone near this computer.');
@@ -344,6 +350,7 @@ export function initLive(api) {
     if (S.playing) musicOff();
     if (S.tap) S.tap.port.postMessage('stop');
     if (S.micNode) { S.micNode.disconnect(); S.micNode = null; }
+    el.liveVizWrap.hidden = true;
     if (S.mic) { S.mic.getTracks().forEach((tr) => tr.stop()); S.mic = null; }
     S.state = 'idle';
     const ws = S.ws;
@@ -360,6 +367,90 @@ export function initLive(api) {
       : was === 'queued' ? 'You left the line.' : ''));
     buttons();
     api.end();
+  }
+
+  // ---- the strip at the bottom of the stage (as in our video): the last 12 s of what the model hears with the
+  // robot's joint speed 1.24 s later, and the spectrum of the sound right now (60 Hz - 8 kHz)
+  let spec = null, vizAt = 0, colors = null, colorsAt = 0;
+  function viz(t) {
+    const cv = el.liveViz;
+    if (el.liveVizWrap.hidden || !cv.clientWidth) return;
+    const ms = performance.now();
+    if (ms - vizAt < 33) return;                     // at most 30 redraws a second: keep the page free to stream audio
+    vizAt = ms;
+    if (!colors || ms - colorsAt > 2000) {           // theme colours, read rarely (a style read each frame costs time)
+      const cs = getComputedStyle(document.documentElement), c = (n, d) => cs.getPropertyValue(n).trim() || d;
+      colors = { blue: c('--song-1', '#0071e3'), orange: c('--robot-fill', '#ff9f0a'), ink2: c('--ink2', '#6e6e73'), hair: c('--hair', '#d2d2d7') };
+      colorsAt = ms;
+    }
+    const dpr = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth, h = cv.clientHeight;
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    const g = cv.getContext('2d');
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, w, h);
+    const { blue, orange, ink2, hair } = colors;
+    const small = h < 90, font = `${small ? 10 : 11}px -apple-system, system-ui, sans-serif`;
+    g.font = font;
+    g.textBaseline = 'top';
+    const split = Math.round(w * (w < 500 ? 0.62 : 0.7)), pad = 10, top = small ? 18 : 22, bot = h - 8, mid = top + (bot - top) * 0.55;
+    // left: scrolling music level and robot speed
+    const W = 12, x = (sec) => pad + ((sec - (t - W)) / W) * (split - 2 * pad);
+    g.fillStyle = ink2;
+    g.fillText('What the model hears', pad, 6);
+    g.textAlign = 'right';
+    g.fillStyle = orange;
+    g.fillText(`Robot, ${S.delay.toFixed(2)} s later`, split - pad, 6);
+    g.textAlign = 'left';
+    const lv = S.levels, i0 = Math.max(0, Math.floor((t - W) / 0.1));
+    g.fillStyle = blue;
+    for (let i = i0; i < lv.length; i++) {
+      const a = Math.max(0, Math.min(1, (lv[i] + 60) / 54)), hh = a * (mid - top - 2);
+      const xx = x(i * 0.1);
+      g.fillRect(xx, (top + mid) / 2 - hh / 2, Math.max(1, x((i + 1) * 0.1) - xx - 1), Math.max(1, hh));
+    }
+    const n = Math.min(S.have, Math.floor((t - S.delay) * FPS) + 1);
+    if (S.speed && n > 1) {
+      g.strokeStyle = orange;
+      g.lineWidth = 1.6;
+      g.beginPath();
+      let started = false;
+      for (let k = Math.max(1, Math.floor((t - W - S.delay) * FPS)); k < n; k += 2) {
+        let sum = 0, c = 0;
+        for (let j = Math.max(1, k - 7); j <= Math.min(n - 1, k + 7); j++) { sum += S.speed[j]; c++; }
+        const y = bot - Math.min(1, sum / c / 1.6) * (bot - mid - 2);
+        if (started) g.lineTo(x(k / FPS + S.delay), y); else { g.moveTo(x(k / FPS + S.delay), y); started = true; }
+      }
+      g.stroke();
+    }
+    g.strokeStyle = hair;
+    g.lineWidth = 1;
+    g.beginPath();
+    g.moveTo(x(t) + 0.5, top);
+    g.lineTo(x(t) + 0.5, bot);
+    g.moveTo(split + 0.5, 6);
+    g.lineTo(split + 0.5, h - 6);
+    g.stroke();
+    // right: spectrum of the sound right now, 24 bands, 60 Hz - 8 kHz on a log scale
+    g.fillStyle = ink2;
+    g.fillText('Spectrum', split + pad, 6);
+    if (S.an) {
+      if (!spec || spec.length !== S.an.frequencyBinCount) spec = new Uint8Array(S.an.frequencyBinCount);
+      S.an.getByteFrequencyData(spec);
+      const nyq = S.ctx.sampleRate / 2, B = 24, x0 = split + pad, bw = (w - pad - x0) / B;
+      g.fillStyle = blue;
+      for (let b = 0; b < B; b++) {
+        const f0 = 60 * Math.pow(8000 / 60, b / B), f1 = 60 * Math.pow(8000 / 60, (b + 1) / B);
+        const k0 = Math.floor((f0 / nyq) * spec.length), k1 = Math.max(k0 + 1, Math.ceil((f1 / nyq) * spec.length));
+        let m = 0;
+        for (let k = k0; k < k1 && k < spec.length; k++) m = Math.max(m, spec[k]);
+        const hh = (m / 255) * (bot - top);
+        g.fillRect(x0 + b * bw + 1, bot - hh, Math.max(1, bw - 2), hh);
+      }
+      g.fillStyle = ink2;
+      g.font = `${small ? 9 : 10}px -apple-system, system-ui, sans-serif`;
+      g.textBaseline = 'bottom';
+      if (!small) { g.fillText('60 Hz', x0, h - 1); g.textAlign = 'right'; g.fillText('8 kHz', w - pad, h - 1); g.textAlign = 'left'; }
+    }
   }
 
   // ---- what the stage shows
@@ -427,6 +518,7 @@ export function initLive(api) {
       if (S.pos >= S.buffer.duration - 0.05) return r === 'standing' ? 'The music has ended and the robot is standing.' : 'The music has ended. The robot heard the silence and is settling.';
       return r === 'standing' ? 'Music paused. The robot is standing. Play the music again.' : 'Music paused. The robot heard the silence and is settling.';
     },
+    viz,
     // the timeline under "Music in. Motion out."
     levels: () => S.levels,
     speeds: () => (S.speed ? S.speed.subarray(0, S.have) : new Float32Array(0)),

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { forwardKinematics } from './fk.js?v=20261104h';
+import { forwardKinematics } from './fk.js?v=20261104j';
 
 // Offline version: replays of dances the deployed model generated. Each programme = one audio file (exactly what the
 // model heard) + its generated motion. The robot is shown 1.24 s behind the music, as on the real robot.
@@ -417,6 +417,7 @@ function liveBegin(ctrl) {
   liveLookAt = 0;
   $('axis').dataset.span = '';
   $('over').hidden = true;
+  $('stage-hint').hidden = true;
   if (narrow.matches) stageEl.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
 }
 function liveEnd() {
@@ -425,6 +426,7 @@ function liveEnd() {
   if (P.prog) { programmeChanged(); updateUI(now(), true); }
   if (P.motion) { drawDetails(); poseAt(now()); follow(1); }
   $('axis').dataset.span = '';
+  $('stage-hint').hidden = false;
 }
 function liveUI(t) {
   const playing = L.playing(), robot = L.robot(t), hint = L.hint(t);
@@ -794,6 +796,7 @@ function loop() {
     if (q) { setPose(q); follow(reduceMotion ? 1 : 0.06); }
     liveUI(t);
     drawLiveLook(t);
+    if (L.viz) L.viz(t);
   } else if (P.prog && tree) {
     let t = now();
     if (P.running && t >= endOf(P.prog)) {
@@ -844,7 +847,7 @@ async function start() {
   renderLibrary();
   await loadRobot();
   // first dance shown: a lively style the model never heard in training (Hip-hop, chiefRocka, FineDance val)
-  const first = (tab === 'styles' && manifest.programmes.find((p) => p.id === 'n13_094'))
+  const first = manifest.programmes.find((p) => p.id === 'n13_094')
     || manifest.programmes.find((p) => p.section === tab && songsOf(p).every((id) => !song(id).seen_in_training))
     || manifest.programmes.find((p) => p.section === 'styles' && songsOf(p).every((id) => !song(id).seen_in_training))
     || manifest.programmes[0];
@@ -855,7 +858,7 @@ async function start() {
     P.running ? pause() : play();
   });
   showSoundStatus();
-  import('./requests.js?v=20261104h').then((m) => {
+  import('./requests.js?v=20261104j').then((m) => {
     stopOthers = m.initRequests({
       add(prog, s) {
         manifest.songs[s.id] = s;
@@ -882,7 +885,7 @@ async function start() {
   $('go-live-btn').addEventListener('click', (e) => { e.preventDefault(); openLive(); });
   if (location.hash === '#live') openLive();
   let liveCtl = null;
-  import('./live.js?v=20261104h').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd }); }).catch(fail);
+  import('./live.js?v=20261104j').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd }); }).catch(fail);
   $('over').addEventListener('click', () => { pause(); seek(0); });
   // hook for automated checks (tools/page_check.mjs)
   window.aheadance = { seek, play: () => play(), pause, now, rootWorld, ready: true, live: () => liveCtl,
