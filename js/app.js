@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { forwardKinematics } from './fk.js?v=20261104f';
+import { forwardKinematics } from './fk.js?v=20261104h';
 
 // Offline version: replays of dances the deployed model generated. Each programme = one audio file (exactly what the
 // model heard) + its generated motion. The robot is shown 1.24 s behind the music, as on the real robot.
@@ -414,6 +414,8 @@ function liveBegin(ctrl) {
   L = ctrl;
   lastUI = '';
   liveDrawn = '';
+  liveLookAt = 0;
+  $('axis').dataset.span = '';
   $('over').hidden = true;
   if (narrow.matches) stageEl.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
 }
@@ -421,7 +423,8 @@ function liveEnd() {
   L = null;
   $('over').hidden = false;
   if (P.prog) { programmeChanged(); updateUI(now(), true); }
-  if (P.motion) { poseAt(now()); follow(1); }
+  if (P.motion) { drawDetails(); poseAt(now()); follow(1); }
+  $('axis').dataset.span = '';
 }
 function liveUI(t) {
   const playing = L.playing(), robot = L.robot(t), hint = L.hint(t);
@@ -553,6 +556,76 @@ function drawDetails() {
     s.style.left = pct(t, span);
     s.textContent = `${t}s`;
     axis.append(s);
+  }
+}
+
+// the same timeline for a live session, redrawn as it goes: the music lane shows the level of what the model hears
+// (and, with a music file, when the music is on); the robot lane shows its joint speed 1.24 s later, up to now
+let liveLookAt = 0;
+function svgPath(cls, d) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 1000 32');
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.setAttribute('class', cls);
+  svg.setAttribute('aria-hidden', 'true');
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', d);
+  svg.append(path);
+  return svg;
+}
+function drawLiveLook(t) {
+  const span = L.max;
+  $('playhead').style.left = `calc(4.5rem + 10px + (100% - 4.5rem - 10px) * ${Math.min(1, t / span)})`;
+  const ms = performance.now();
+  if (ms - liveLookAt < 250) return;
+  liveLookAt = ms;
+  $('look-title').textContent = L.title;
+  const x = (sec) => ((sec / span) * 1000).toFixed(1);
+  const music = $('track-music');
+  music.replaceChildren(...L.segments(t).map((s) => {
+    const d = document.createElement('div');
+    d.className = 'seg music live-on';
+    d.style.left = pct(s.t0, span);
+    d.style.width = pct(Math.max(0, s.t1 - s.t0), span);
+    return d;
+  }));
+  const lv = L.levels();
+  let d = 'M0,32';
+  for (let i = 0; i < lv.length; i++) d += `L${x((i + 0.5) * 0.1)},${(32 - Math.max(0, Math.min(1, (lv[i] + 60) / 54)) * 30).toFixed(1)}`;
+  music.append(svgPath('envelope', `${d}L${x(lv.length * 0.1)},32Z`));
+  const robot = $('track-robot');
+  robot.replaceChildren();
+  const sp = L.speeds(), n = Math.min(sp.length, Math.floor((t - L.delay) * 30) + 1), h = 7;
+  if (n > 1) {
+    const c = new Float64Array(n + 1);
+    for (let i = 0; i < n; i++) c[i + 1] = c[i] + sp[i];
+    let r = `M${x(L.delay)},32`;
+    for (let i = 0; i < n; i += 2) {
+      const lo = Math.max(0, i - h), hi = Math.min(n, i + h + 1), a = (c[hi] - c[lo]) / (hi - lo);
+      r += `L${x(i / 30 + L.delay)},${(32 - Math.min(1, a / 1.6) * 28).toFixed(1)}`;
+    }
+    robot.append(svgPath('activity', `${r}L${x((n - 1) / 30 + L.delay)},32Z`));
+  }
+  const marks = $('marks');
+  marks.replaceChildren(...L.events().map(([at, label]) => {
+    const m = document.createElement('div');
+    m.className = label === 'stop' ? 'mark before' : 'mark';
+    m.style.left = pct(at, span);
+    const s = document.createElement('span');
+    s.textContent = label;
+    m.append(s);
+    return m;
+  }));
+  const axis = $('axis');
+  if (axis.dataset.span !== String(span)) {
+    axis.dataset.span = String(span);
+    axis.replaceChildren();
+    for (let s = 0; s <= span + 1e-6; s += span > 70 ? 20 : 10) {
+      const e = document.createElement('span');
+      e.style.left = pct(s, span);
+      e.textContent = `${s}s`;
+      axis.append(e);
+    }
   }
 }
 
@@ -720,6 +793,7 @@ function loop() {
     const t = L.now(), q = L.pose(t);
     if (q) { setPose(q); follow(reduceMotion ? 1 : 0.06); }
     liveUI(t);
+    drawLiveLook(t);
   } else if (P.prog && tree) {
     let t = now();
     if (P.running && t >= endOf(P.prog)) {
@@ -781,7 +855,7 @@ async function start() {
     P.running ? pause() : play();
   });
   showSoundStatus();
-  import('./requests.js?v=20261104f').then((m) => {
+  import('./requests.js?v=20261104h').then((m) => {
     stopOthers = m.initRequests({
       add(prog, s) {
         manifest.songs[s.id] = s;
@@ -808,7 +882,7 @@ async function start() {
   $('go-live-btn').addEventListener('click', (e) => { e.preventDefault(); openLive(); });
   if (location.hash === '#live') openLive();
   let liveCtl = null;
-  import('./live.js?v=20261104f').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd }); }).catch(fail);
+  import('./live.js?v=20261104h').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd }); }).catch(fail);
   $('over').addEventListener('click', () => { pause(); seek(0); });
   // hook for automated checks (tools/page_check.mjs)
   window.aheadance = { seek, play: () => play(), pause, now, rootWorld, ready: true, live: () => liveCtl,

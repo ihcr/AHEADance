@@ -11,7 +11,7 @@
 // computer's microphone streams what it hears (browser echo cancelling, noise suppression and gain control off; the
 // microphone is never played back here). The server runs the real robot's microphone chain on it, which spends the
 // first 4.7 s learning the room. Nothing is kept unless the visitor ticks the box.
-import { CLIENT, store } from './requests.js?v=20261104f';   // same URL as app.js: one module
+import { CLIENT, store } from './requests.js?v=20261104h';   // same URL as app.js: one module
 
 export const LIVE = 'wss://pengtianhu--aheadance-live-web.us-east.modal.run/ws';
 const SR = 48000, FPS = 30, CH = 36, LEAD = 1.0, MAX_MB = 60;
@@ -54,7 +54,8 @@ export function initLive(api) {
     .map((k) => [k.replace(/-(\w)/g, (_, c) => c.toUpperCase()), $(k)]));
   const S = { code: store.get(), buffer: null, name: '', ctx: null, tap: null, src: null, ws: null, state: 'idle',
     first: -1, max: 180, delay: 1.24, frames: null, have: 0, music: [], playing: false, pos: 0, startedAt: 0,
-    late: 0, rx: [], done: null, source: 'file', mic: null, micNode: null, out: null, level: -120, room: 0, zeros: 0 };
+    late: 0, rx: [], done: null, source: 'file', mic: null, micNode: null, out: null, level: -120, room: 0, zeros: 0,
+    levels: [], speed: null };       // for the timeline: dBFS per streamed 0.1 s, joint speed per received frame
   const isMic = () => S.source === 'microphone';
 
   // ---- signed in? (the same sign-in as Your song: an email token or an access code)
@@ -230,7 +231,7 @@ export function initLive(api) {
     api.begin(controller);
     const ctx = context();
     Object.assign(S, { state: 'connecting', first: -1, have: 0, music: [], playing: false, pos: 0, late: 0, rx: [],
-      done: null, frames: null, maxQueued: 0, warned: false, zeros: 0 });
+      done: null, frames: null, maxQueued: 0, warned: false, zeros: 0, levels: [], speed: null });
     el.liveStats.textContent = '';
     buttons();
     status('Connecting to the live server…');
@@ -270,6 +271,7 @@ export function initLive(api) {
       S.level = 10 * Math.log10(p / Math.max(1, a.length / 2) / 1073741824 + 1e-12);   // dBFS of this 0.1 s
       // a microphone that delivers exact zeros is blocked or the wrong device (seen 11-04: the OS had not allowed it)
       S.zeros = p === 0 ? S.zeros + 1 : 0;
+      if (S.state === 'live' && S.first >= 0) S.levels.push(S.level);
       if (isMic() && S.state === 'live' && S.zeros === 15) {
         status('Your microphone is sending pure silence. Check that your computer lets the browser use the microphone '
           + '(macOS: System Settings › Privacy & Security › Microphone; Windows: Settings › Privacy › Microphone) and that '
@@ -293,7 +295,8 @@ export function initLive(api) {
         S.state = 'warming';
         status(`Starting the cloud GPU… ${m.seconds} s (the first visitor in a while waits about a minute)`);
       } else if (m.type === 'ready') {
-        Object.assign(S, { state: 'live', max: m.seconds, delay: m.delay, frames: new Float32Array(m.seconds * FPS * CH + 16 * CH) });
+        Object.assign(S, { state: 'live', max: m.seconds, delay: m.delay, frames: new Float32Array(m.seconds * FPS * CH + 16 * CH),
+          speed: new Float32Array(m.seconds * FPS + 16) });
         S.tap.port.postMessage('start');
         if (isMic()) {
           S.room = m.room_seconds || 0;
@@ -320,6 +323,11 @@ export function initLive(api) {
     const rows = new Float32Array(buf, 12);
     if (!S.frames || frame * CH + rows.length > S.frames.length) return;
     S.frames.set(rows, frame * CH);
+    for (let k = Math.max(1, frame); k < frame + 16; k++) {      // mean joint speed per frame (rad/s), as in app.js
+      let sp = 0;
+      for (let j = 7; j < CH; j++) sp += Math.abs(S.frames[k * CH + j] - S.frames[(k - 1) * CH + j]);
+      S.speed[k] = (sp / (CH - 7)) * FPS;
+    }
     S.have = Math.max(S.have, frame + 16);
     S.rx.push(streamTime() - frame / FPS);
     if (S.rx.length > 40) S.rx.shift();
@@ -419,6 +427,11 @@ export function initLive(api) {
       if (S.pos >= S.buffer.duration - 0.05) return r === 'standing' ? 'The music has ended and the robot is standing.' : 'The music has ended. The robot heard the silence and is settling.';
       return r === 'standing' ? 'Music paused. The robot is standing. Play the music again.' : 'Music paused. The robot heard the silence and is settling.';
     },
+    // the timeline under "Music in. Motion out."
+    levels: () => S.levels,
+    speeds: () => (S.speed ? S.speed.subarray(0, S.have) : new Float32Array(0)),
+    get delay() { return S.delay; },
+    events: () => (isMic() ? [] : S.music.map((m) => [m.at, m.playing ? 'start' : 'stop'])),
     toggle() { if (S.state !== 'live') return; if (isMic()) finish(); else (S.playing ? musicOff() : musicOn()); },
     stop() { if (S.state !== 'idle') finish(); },
     debug: () => ({ state: S.state, source: S.source, level: +S.level.toFixed(1), t: +streamTime().toFixed(2), have: S.have, late: S.late, playing: S.playing,
