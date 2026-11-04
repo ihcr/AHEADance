@@ -11,7 +11,7 @@
 // computer's microphone streams what it hears (browser echo cancelling, noise suppression and gain control off; the
 // microphone is never played back here). The server runs the real robot's microphone chain on it, which spends the
 // first 4.7 s learning the room. Nothing is kept unless the visitor ticks the box.
-import { CLIENT, store } from './requests.js?v=20261104e';   // same URL as app.js: one module
+import { CLIENT, store } from './requests.js?v=20261104f';   // same URL as app.js: one module
 
 export const LIVE = 'wss://pengtianhu--aheadance-live-web.us-east.modal.run/ws';
 const SR = 48000, FPS = 30, CH = 36, LEAD = 1.0, MAX_MB = 60;
@@ -89,7 +89,7 @@ export function initLive(api) {
 
   // ---- music file or microphone
   function setSource(src) {
-    if (['connecting', 'warming', 'live'].includes(S.state)) return;
+    if (['connecting', 'queued', 'warming', 'live'].includes(S.state)) return;
     S.source = src;
     el.liveSrcFile.setAttribute('aria-pressed', String(src === 'file'));
     el.liveSrcMic.setAttribute('aria-pressed', String(src === 'microphone'));
@@ -162,13 +162,14 @@ export function initLive(api) {
   }
   function status(text) { el.liveStatus.textContent = text; }
   function buttons() {
-    const live = ['connecting', 'warming', 'live'].includes(S.state);
+    const live = ['connecting', 'queued', 'warming', 'live'].includes(S.state);
     el.liveGo.hidden = live;
     el.liveGo.disabled = !S.code || (!isMic() && !S.buffer);
     el.liveMusic.hidden = S.state !== 'live' || isMic();
     el.liveSrcFile.disabled = el.liveSrcMic.disabled = live;
     el.liveMusic.textContent = S.playing ? 'Pause the music' : 'Play the music';
     el.liveEnd.hidden = !live;
+    el.liveEnd.textContent = S.state === 'queued' ? 'Leave the line' : 'End';
     el.liveFile.disabled = live;
   }
 
@@ -285,7 +286,10 @@ export function initLive(api) {
       if (S.ws !== ws) return;
       if (typeof e.data !== 'string') return chunk(e.data);
       const m = JSON.parse(e.data);
-      if (m.type === 'warming') {
+      if (m.type === 'queue') {             // someone else is live: wait in line (one session at a time)
+        S.state = 'queued';
+        status(`Someone else is live right now. You are number ${m.position} in line, about ${m.wait} s to go. Keep this page open.`);
+      } else if (m.type === 'warming') {
         S.state = 'warming';
         status(`Starting the cloud GPU… ${m.seconds} s (the first visitor in a while waits about a minute)`);
       } else if (m.type === 'ready') {
@@ -344,7 +348,8 @@ export function initLive(api) {
       ws.close();
     }
     S.first = -1;
-    status(message || (was === 'live' ? `Live session ended${reason === 'longest session reached' ? ` (the longest is ${mmss(S.max)})` : ''}. Go live again any time.` : ''));
+    status(message || (was === 'live' ? `Live session ended${reason === 'longest session reached' ? ` (the longest is ${mmss(S.max)})` : ''}. Go live again any time.`
+      : was === 'queued' ? 'You left the line.' : ''));
     buttons();
     api.end();
   }
@@ -397,6 +402,7 @@ export function initLive(api) {
     hint(t) {
       if (S.state === 'connecting') return 'Connecting to the live server…';
       if (S.state === 'warming') return 'Starting the cloud GPU. The robot will stand, then dance to your music.';
+      if (S.state === 'queued') return 'Waiting for your turn. Each live session is at most 1 minute.';
       if (S.state !== 'live') return '';
       const r = robot(t), left = S.max - t;
       if (left < 15) return `The live session ends in ${Math.ceil(left)} s.`;

@@ -37,7 +37,7 @@ The Live tab plays a music file in the browser and streams exactly what it plays
 - It needs the same sign-in as Your song.
 - Every session draws a new random seed, so the same music gives a new dance each time.
 - Microphone (beta): the music plays on another device, such as a phone, and the browser streams what the computer's microphone hears (echo cancelling, noise suppression and gain control off; never played back). The server runs the real robot's microphone chain on it (a music gate that first learns the room for 4.7 s). Recordings are kept only if the visitor ticks the box.
-- One visitor at a time, at most 1 minute per session.
+- One visitor at a time, at most 1 minute per session. Others wait in line (up to 5), with their place and an estimated wait.
 - Each email address gets 3 live sessions a day. Lab codes have no limit.
 - The first visitor in a while waits about a minute while the cloud GPU starts.
 - The audio is not kept.
