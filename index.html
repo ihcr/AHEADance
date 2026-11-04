@@ -135,6 +135,18 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .clips.styles .clip h3 { font-size: 22px; }
 .clips.styles + .film-cap { margin-top: 20px; }
 .stop-film { margin-top: 56px; }
+#go-live { padding-bottom: 0; }
+.live-card { max-width: var(--wide); margin: 0 auto; border-radius: var(--r-lg); padding: clamp(32px, 5vw, 64px); color: #ffffff;
+  background: linear-gradient(135deg, #0a58d0 0%, #5b3ee8 55%, #a23be0 100%); display: grid; gap: 18px; justify-items: start; }
+.live-eyebrow { font-size: 15px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.85; }
+.live-card h2 { font-size: clamp(36px, 5vw, 56px); line-height: 1.05; text-align: left; margin: 0; color: #ffffff; }
+.live-lead { font-size: clamp(17px, 1.6vw, 21px); line-height: 1.42; max-width: 40em; opacity: 0.95; }
+.live-facts { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; width: 100%; }
+.live-facts li { background: rgba(255, 255, 255, 0.14); border-radius: 16px; padding: 14px 16px; font-size: 14px; line-height: 1.35; }
+.live-facts strong { display: block; font-size: 20px; font-weight: 600; margin-bottom: 2px; }
+.live-go { margin-top: 6px; background: #ffffff; color: #3a2bc4; border-radius: 999px; padding: 12px 28px; font-size: 17px; font-weight: 600; }
+.live-go:hover { text-decoration: none; filter: brightness(0.96); }
+@media (max-width: 860px) { .live-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* web demo */
 .app { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: stretch; margin-top: 56px; }
@@ -196,6 +208,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .live .code-form { justify-content: start; }
 .live .code-form input { width: 100%; flex: 1 1 140px; }
 .live-who { font-size: 13px; color: var(--ink2); }
+.live-signin { font-size: 14px; color: var(--ink); line-height: 1.4; }
 .live-drop { padding: 18px 12px; }
 .live-drop .drop-main { font-size: 15px; }
 .live-drop .drop-sub { overflow-wrap: anywhere; }
@@ -247,6 +260,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .code-form { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 .code-form input { font: inherit; font-size: 16px; color: var(--ink); background: var(--card); border: 1px solid var(--hair); border-radius: 999px; padding: 8px 16px; min-width: 0; width: 220px; }
 .code-form .btn-quiet { justify-self: auto; }
+.mail-msg { font-size: 14px; color: var(--ink2); min-height: 1.4em; margin-top: 10px; }
+.mail-note { font-size: 13px; color: var(--ink2); max-width: 36em; margin: 6px auto 0; line-height: 1.45; }
+.mail-note .link { font-size: 13px; }
 .code-line { font-size: 14px; color: var(--ink2); }
 .code-line .link { font-size: 14px; }
 .send-grid { max-width: var(--mid); margin: 48px auto 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 16px; align-items: start; }
@@ -324,7 +340,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
       <a class="pill-link" href="#styles">Styles</a>
       <a class="pill-link" href="#demo">Web demo</a>
       <a class="pill-link" href="#yours">Your song</a>
-      <a class="pill-blue" href="#demo">Try it</a>
+      <a class="pill-blue" href="#go-live">Try it live</a>
     </div>
   </nav>
 </div>
@@ -335,7 +351,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
     <h1>Every song,<br>its own dance.</h1>
     <p class="sub">A humanoid robot that hears the style in the music and improvises a dance to it, never quite the same twice, even to the same song.</p>
     <div class="cta">
-      <a class="btn-blue" href="#demo">Try the web demo</a>
+      <a class="btn-blue" href="#go-live">Try it live</a>
       <a class="btn-link" href="#robot">Watch the real robot ›</a>
     </div>
   </header>
@@ -460,6 +476,21 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
     <p class="film-cap">The same eight runs, lined up at the moment their music stops.</p>
   </section>
 
+  <section class="section gutter" id="go-live" aria-labelledby="go-live-h">
+    <div class="live-card">
+      <p class="live-eyebrow">Live</p>
+      <h2 id="go-live-h">Bring your own music.</h2>
+      <p class="live-lead">Play any song from your device. Our model on a cloud GPU listens as it plays, and the robot dances to it 1.24 s behind the music, as on the real robot. Every session is a new dance.</p>
+      <ul class="live-facts">
+        <li><strong>Any song</strong>MP3, WAV, M4A … from your device</li>
+        <li><strong>3 minutes</strong>per session</li>
+        <li><strong>3 sessions</strong>a day for each email</li>
+        <li><strong>About a minute</strong>to start the GPU if no one has used it for a while</li>
+      </ul>
+      <a class="live-go" href="#demo" id="go-live-btn">Go live</a>
+    </div>
+  </section>
+
   <section class="section gutter" id="demo" aria-labelledby="demo-h">
     <p class="eyebrow">Web demo</p>
     <h2 id="demo-h">Play it in your browser.</h2>
@@ -498,11 +529,8 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
           </div>
           <div class="live" id="live" hidden>
             <p class="live-note">Play a music file here. Our model on a cloud GPU listens as it plays, and the robot dances 1.24 s behind the music, as on the real robot. Pause the music and the robot settles; play it again and the robot dances again.</p>
-            <form class="code-form live-code" id="live-code-form" hidden>
-              <input type="text" id="live-code" placeholder="Access code" autocomplete="off" spellcheck="false" aria-label="Access code">
-              <button type="submit" class="btn-quiet">Use code</button>
-            </form>
-            <p class="live-who" id="live-who" hidden><span id="live-who-text"></span> · <button type="button" class="link" id="live-forget">Use another code</button></p>
+            <p class="live-signin" id="live-signin" hidden>To go live, <a href="#yours">sign in with your email</a> under Your song: 3 sessions a day, up to 3 minutes each.</p>
+            <p class="live-who" id="live-who" hidden><span id="live-who-text"></span> · <button type="button" class="link" id="live-forget">Sign out</button></p>
             <label class="drop live-drop">
               <input type="file" id="live-file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac">
               <span class="drop-main">Choose a music file</span>
@@ -553,12 +581,22 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
       <p class="eyebrow">Your song</p>
       <h2 id="yours-h">Send us 20 seconds.</h2>
       <p class="lead">We put 2 s of silence before your music and 4 s after it, so the robot starts and ends standing. Then we run the same model on it on a cloud GPU, and the dance appears in your web demo under Your song. Only you and our lab see your songs.</p>
-      <p class="status" id="own-status">Sending a song needs an access code.</p>
+      <p class="status" id="own-status">Sign in with your email to send songs.</p>
+      <form class="code-form" id="mail-form" hidden>
+        <input type="email" id="mail-input" placeholder="Your email" autocomplete="email" spellcheck="false" aria-label="Your email">
+        <button type="submit" class="btn-quiet" id="mail-send">Email me a code</button>
+      </form>
+      <form class="code-form" id="verify-form" hidden>
+        <input type="text" id="verify-input" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" aria-label="6-digit code from the email">
+        <button type="submit" class="btn-quiet">Sign in</button>
+      </form>
+      <p class="mail-msg" id="mail-msg" aria-live="polite"></p>
       <form class="code-form" id="code-form" hidden>
         <input type="text" id="code-input" placeholder="Access code" autocomplete="off" spellcheck="false" aria-label="Access code">
         <button type="submit" class="btn-quiet">Use code</button>
       </form>
-      <p class="code-line" id="code-line" hidden><span id="code-who"></span> · <button type="button" class="link" id="code-forget">Use another code</button></p>
+      <p class="code-line" id="code-line" hidden><span id="code-who"></span> · <button type="button" class="link" id="code-forget">Sign out</button></p>
+      <p class="mail-note" id="mail-note">Each email can send 2 songs. We use your email only to send the code and keep your songs; only our lab sees it. <button type="button" class="link" id="code-toggle">Have an access code?</button></p>
       <div class="ask" id="own-ask" hidden></div>
     </div>
     <div class="send-grid">

@@ -1,6 +1,9 @@
 // "Your song": send up to 20 s of music; our server runs the same model on it and the dance comes back to this page.
 //
-// Access codes (we email them on request):
+// Who may send (user 11-04): anyone who signs in with an email address. The server emails a 6-digit code; the page
+// trades it for a personal access token kept in this browser. Each address has its own 2 songs (the lab can give
+// more on request), shared by every device signed in with it, and sees only its own songs.
+// Access codes (typed instead of signing in):
 //   lab code     no limit, and sees everyone's songs
 //   guest code   LIMIT songs, and sees only its own
 //   shared code  (e.g. "guest") anyone may use; each browser counts as its own person, with its own LIMIT songs
@@ -92,13 +95,15 @@ function programmeWav(wav, lead, tail) {
 // ------------------------------------------------------------------ page module
 export function initRequests(api) {
   const el = Object.fromEntries(['own-status', 'own-ask', 'code-form', 'code-input', 'code-line', 'code-who',
+    'mail-form', 'mail-input', 'mail-send', 'verify-form', 'verify-input', 'mail-msg', 'mail-note', 'code-toggle',
     'code-forget', 'send', 'send-form', 'send-file', 'send-pick', 'send-file-name', 'send-file-len', 'send-start',
     'send-window', 'send-listen', 'send-name', 'send-style', 'send-ok', 'send-go', 'send-msg', 'mine', 'mine-list',
     'mine-note', 'queue', 'queue-list'].map((k) => [k.replace(/-(\w)/g, (_, c) => c.toUpperCase()), $(k)]));
   const preview = new Audio();
   preview.addEventListener('ended', () => { el.sendListen.textContent = 'Listen to this part'; });
   const stop = () => { if (!preview.paused) { preview.pause(); el.sendListen.textContent = 'Listen to this part'; } };
-  const S = { code: '', me: null, mine: [], all: [], decoded: null, file: null, busy: false, built: new Map(), timer: 0 };
+  const S = { code: '', me: null, mine: [], all: [], decoded: null, file: null, busy: false, built: new Map(), timer: 0,
+    email: '', codeOpen: false };
 
   const call = async (path, opts = {}) => {
     const r = await fetch(API + path, { ...opts, headers: { 'X-Code': S.code, 'X-Client': CLIENT, ...(opts.headers || {}) } });
@@ -112,43 +117,101 @@ export function initRequests(api) {
     return r;
   };
   function setStatus(text) { el.ownStatus.textContent = text; }
-  function showAsk() {
+  function showAsk(more) {
     el.ownAsk.hidden = false;
     el.ownAsk.replaceChildren();
+    const subject = more ? 'AHEADance: more songs please' : 'AHEADance: a question about Your song';
     if (CONTACT) {
       const a = document.createElement('a');
-      a.href = `mailto:${CONTACT}?subject=${encodeURIComponent('AHEADance: access code to send a song')}`;
-      a.textContent = 'Email us for a code';
-      el.ownAsk.append('No code? ', a, '.');
-    } else el.ownAsk.textContent = 'No code? Ask the AHEADance team for one.';
+      a.href = `mailto:${CONTACT}?subject=${encodeURIComponent(subject)}`;
+      a.textContent = CONTACT;
+      el.ownAsk.append(more ? 'Need more songs? Email ' : 'Questions? Email ', a, '.');
+    } else el.ownAsk.textContent = more ? 'Need more songs? Ask the AHEADance team.' : '';
   }
   function signedOut(msg) {
     clearTimeout(S.timer);
     Object.assign(S, { code: '', me: null, mine: [], all: [] });
-    setStatus(msg || 'Sending a song needs an access code.');
-    el.codeForm.hidden = false;
+    setStatus(msg || 'Sign in with your email to send songs.');
+    el.mailForm.hidden = !!S.email;
+    el.verifyForm.hidden = !S.email;
+    el.mailNote.hidden = false;
+    el.codeForm.hidden = !S.codeOpen;
     el.codeLine.hidden = true;
     el.send.hidden = true;
     el.mine.hidden = true;
-    showAsk();
+    showAsk(false);
   }
+
+  // ---- sign in with an email address
+  el.mailForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = el.mailInput.value.trim();
+    if (!email) return;
+    el.mailSend.disabled = true;
+    el.mailMsg.textContent = 'Sending…';
+    try {
+      await call('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+      S.email = email;
+      el.mailMsg.textContent = `We sent a 6-digit code to ${email}. It works for 15 minutes. Not there? Check your spam folder.`;
+      el.mailForm.hidden = true;
+      el.verifyForm.hidden = false;
+      el.verifyInput.value = '';
+      el.verifyInput.focus();
+    } catch (err) {
+      el.mailMsg.textContent = err.message;
+    } finally {
+      el.mailSend.disabled = false;
+    }
+  });
+  el.verifyForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const code = el.verifyInput.value.trim();
+    if (!/^\d{6}$/.test(code)) { el.mailMsg.textContent = 'The code has 6 digits.'; return; }
+    el.mailMsg.textContent = 'Checking…';
+    try {
+      const r = await (await call('/api/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: S.email, code }) })).json();
+      S.email = '';
+      el.mailMsg.textContent = '';
+      useCode(r.code);
+    } catch (err) {
+      el.mailMsg.textContent = `${err.message}`;
+      if (/expired|new one/.test(err.message)) {
+        S.email = '';
+        el.verifyForm.hidden = true;
+        el.mailForm.hidden = false;
+      }
+    }
+  });
+  el.codeToggle.addEventListener('click', () => {
+    S.codeOpen = !S.codeOpen;
+    el.codeForm.hidden = !S.codeOpen || !!S.code;
+    if (S.codeOpen) el.codeInput.focus();
+  });
 
   // ---- access code
   async function useCode(code) {
     S.code = code.trim();
     if (!S.code) return signedOut();
     setStatus('Checking the code…');
+    const asked = S.code;
     try {
-      S.me = await (await call('/api/me')).json();
+      const me = await (await call('/api/me')).json();
+      if (S.code !== asked) return;                // signed out or switched meanwhile
+      S.me = me;
     } catch (e) {
+      if (S.code !== asked) return;
       store.set('');
       return signedOut(e.status === 403 ? 'That code is not valid.' : `The song server cannot be reached (${e.message}).`);
     }
     store.set(S.code);
     el.codeForm.hidden = true;
+    el.mailForm.hidden = true;
+    el.verifyForm.hidden = true;
+    el.mailNote.hidden = true;
     el.ownAsk.hidden = true;
     el.codeLine.hidden = false;
-    el.codeWho.textContent = S.me.role === 'lab' ? 'Lab code' : S.me.shared ? 'Guest code'
+    el.codeWho.textContent = S.me.email ? `Signed in as ${S.me.label}` : S.me.role === 'lab' ? 'Lab code' : S.me.shared ? 'Guest code'
       : `Code${S.me.label ? ` for ${S.me.label}` : ''}`;
     el.send.hidden = false;
     el.mine.hidden = false;
@@ -164,11 +227,23 @@ export function initRequests(api) {
   async function refresh() {
     clearTimeout(S.timer);
     if (!S.code) return;
+    const asked = S.code;                          // a sign-out meanwhile drops these answers
     try {
-      S.mine = (await (await call('/api/songs')).json()).songs;
-      if (S.me.today_left !== undefined) S.me = await (await call('/api/me')).json();
-      if (S.me.role === 'lab') S.all = (await (await call('/api/songs?all=1')).json()).songs;
+      const mine = (await (await call('/api/songs')).json()).songs;
+      if (S.code !== asked) return;
+      S.mine = mine;
+      if (S.me.today_left !== undefined) {
+        const me = await (await call('/api/me')).json();
+        if (S.code !== asked) return;
+        S.me = me;
+      }
+      if (S.me.role === 'lab') {
+        const all = (await (await call('/api/songs?all=1')).json()).songs;
+        if (S.code !== asked) return;
+        S.all = all;
+      }
     } catch (e) {
+      if (S.code !== asked) return;
       el.mineNote.textContent = `Your songs could not be loaded (${e.message}).`;
     }
     render();
@@ -179,13 +254,14 @@ export function initRequests(api) {
   // ---- my songs
   function render() {
     if (!S.me) return;
-    const n = S.mine.length, lab = S.me.role === 'lab', shared = S.me.shared;
+    const n = S.mine.length, lab = S.me.role === 'lab', shared = S.me.shared, mail = S.me.email;
     const own = lab ? Infinity : Math.max(0, S.me.limit - n), today = S.me.today_left ?? Infinity;
     const left = Math.min(own, today);
     setStatus(lab ? 'Lab code: send as many songs as you like. You also see everyone\'s songs.'
-      : !own ? (shared ? `You have sent your ${S.me.limit} songs.` : `This code has sent its ${S.me.limit} songs.`)
-        : !today ? 'The guest code has sent all its songs for today. Please try again tomorrow.'
-          : `You can send ${left} more song${left > 1 ? 's' : ''} (${S.me.limit} per ${shared ? 'person' : 'code'}).`);
+      : !own ? (shared || mail ? `You have sent your ${S.me.limit} songs.` : `This code has sent its ${S.me.limit} songs.`)
+        : !today ? 'Today\'s songs are all taken. Please try again tomorrow.'
+          : `You can send ${left} more song${left > 1 ? 's' : ''} (${S.me.limit} per ${mail ? 'email' : shared ? 'person' : 'code'}).`);
+    if (!lab && !own) showAsk(true); else el.ownAsk.hidden = true;
     const full = left === 0;
     el.sendForm.classList.toggle('full', full);
     el.sendGo.disabled = full || S.busy || !S.decoded;

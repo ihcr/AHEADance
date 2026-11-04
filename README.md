@@ -24,20 +24,20 @@ Every dance in the web demo is one run of the deployed model on exactly the audi
 
 `js/requests.js` talks to the song server at the `API` address in that file. The server runs on Modal and its code lives in the lab's research repository, not here.
 
-- Every request needs an access code.
-- A lab code has no limit and sees everyone's songs.
-- A guest code can send 2 songs and sees only its own.
-- A shared guest code works for anyone who has it. Each browser counts as one person, with 2 songs, and sees only its own songs. All its users together send at most 10 songs a day.
+- Visitors sign in with their email: the server emails a 6-digit code, and the page keeps a personal access token in that browser.
+- Each email address can send 2 songs and sees only its own songs, on every device it signs in on. The lab can give an address more songs when asked.
+- A lab access code has no limit and sees everyone's songs.
+- The mail goes out through the SMTP account in the Modal Secret `aheadance-mail`.
 - The server adds 2 s of silence before the music and 4 s after it, runs the same model, and sends the dance back. This takes about two minutes.
 
 ## Live
 
 The Live tab plays a music file in the browser and streams exactly what it plays to the live server (`LIVE` in `js/live.js`). Paused music streams as silence. The server runs the same feature service and generator as the real robot, one 0.533 s chunk at a time. Each chunk comes back to the page, which shows it 1.24 s behind the music.
 
-- It needs an access code, the same as Your song.
+- It needs the same sign-in as Your song.
 - Every session draws a new random seed, so the same music gives a new dance each time.
 - One visitor at a time, at most 3 minutes per session.
-- Guest codes together get 10 live sessions a day. Lab codes have no limit.
+- Each email address gets 3 live sessions a day. Lab codes have no limit.
 - The first visitor in a while waits about a minute while the cloud GPU starts.
 - The audio is not kept.
 

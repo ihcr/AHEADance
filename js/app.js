@@ -798,6 +798,15 @@ async function start() {
       pauseAll() { pause(); videos.forEach((v) => { if (v.id !== 'film') v.pause(); else if (!v.muted) { v.muted = true; filmLabel(); } }); },
     }).stop;
   }).catch(fail);
+  // the Live card's button: open the Live tab next to the robot
+  const openLive = () => {
+    tab = 'live';
+    try { localStorage.setItem('aheadance-tab', tab); } catch { /* storage unavailable */ }
+    renderLibrary();
+    (narrow.matches ? $('live') : $('demo')).scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+  };
+  $('go-live-btn').addEventListener('click', (e) => { e.preventDefault(); openLive(); });
+  if (location.hash === '#live') openLive();
   let liveCtl = null;
   import('./live.js').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd }); }).catch(fail);
   $('over').addEventListener('click', () => { pause(); seek(0); });

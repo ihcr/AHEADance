@@ -43,30 +43,22 @@ class Tap extends AudioWorkletProcessor {
 registerProcessor('aheadance-tap', Tap);`;
 
 export function initLive(api) {
-  const el = Object.fromEntries(['live', 'live-code-form', 'live-code', 'live-who', 'live-who-text', 'live-forget',
+  const el = Object.fromEntries(['live', 'live-signin', 'live-who', 'live-who-text', 'live-forget',
     'live-file', 'live-file-name', 'live-go', 'live-music', 'live-end', 'live-status', 'live-stats']
     .map((k) => [k.replace(/-(\w)/g, (_, c) => c.toUpperCase()), $(k)]));
   const S = { code: store.get(), buffer: null, name: '', ctx: null, tap: null, src: null, ws: null, state: 'idle',
     first: -1, max: 180, delay: 1.24, frames: null, have: 0, music: [], playing: false, pos: 0, startedAt: 0,
     late: 0, rx: [], done: null };
 
-  // ---- access code (the same code as Your song)
+  // ---- signed in? (the same sign-in as Your song: an email token or an access code)
   function showCode() {
     const has = !!S.code;
-    el.liveCodeForm.hidden = has;
+    el.liveSignin.hidden = has;
     el.liveWho.hidden = !has;
-    if (has) el.liveWhoText.textContent = 'Access code saved';
+    if (has) el.liveWhoText.textContent = 'Signed in';
     buttons();
   }
-  el.liveCodeForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const v = el.liveCode.value.trim();
-    if (!v) return;
-    S.code = v;
-    store.set(v);
-    showCode();
-  });
-  el.liveForget.addEventListener('click', () => { S.code = ''; store.set(''); el.liveCode.value = ''; showCode(); });
+  el.liveForget.addEventListener('click', () => { S.code = ''; store.set(''); showCode(); });
   window.addEventListener('aheadance-code', (e) => { S.code = e.detail; showCode(); });
 
   // ---- the music file
