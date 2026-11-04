@@ -214,6 +214,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .seg-btn[aria-pressed="true"] { background: var(--card); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
 .live-mic { display: grid; gap: 10px; }
 .live-mic p { font-size: 13px; color: var(--ink2); line-height: 1.45; }
+.mic-check { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mic-check select { font: inherit; font-size: 13px; color: var(--ink); background: var(--card); border: 1px solid var(--hair); border-radius: 10px; padding: 6px 8px; max-width: 100%; min-width: 0; flex: 1 1 160px; }
+.live-mic .mic-level { font-size: 13px; color: var(--ink); min-height: 1.4em; }
 .live-drop { padding: 18px 12px; }
 .live-drop .drop-main { font-size: 15px; }
 .live-drop .drop-sub { overflow-wrap: anywhere; }
@@ -542,6 +545,12 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
             </div>
             <div class="live-mic" id="live-mic" hidden>
               <p>Play music on another device, such as your phone, near this computer. Your browser will ask to use the microphone. Start quietly: the first 5 seconds let the model learn what your room sounds like.</p>
+              <p class="mic-note">Open this page on the computer next to the phone: a remote desktop uses the remote machine's microphone.</p>
+              <div class="mic-check">
+                <select id="live-mic-device" aria-label="Microphone" hidden></select>
+                <button type="button" class="btn-quiet" id="live-mic-test">Test the microphone</button>
+              </div>
+              <p class="mic-level" id="live-mic-level" aria-live="polite"></p>
               <label class="check"><input type="checkbox" id="live-keep"><span>Let the AHEADance lab keep this recording to improve the microphone mode.</span></label>
             </div>
             <label class="drop live-drop" id="live-drop">

@@ -50,7 +50,7 @@ registerProcessor('aheadance-tap', Tap);`;
 export function initLive(api) {
   const el = Object.fromEntries(['live', 'live-signin', 'live-who', 'live-who-text', 'live-forget',
     'live-file', 'live-file-name', 'live-go', 'live-music', 'live-end', 'live-status', 'live-stats',
-    'live-src-file', 'live-src-mic', 'live-mic', 'live-keep', 'live-drop']
+    'live-src-file', 'live-src-mic', 'live-mic', 'live-keep', 'live-drop', 'live-mic-device', 'live-mic-test', 'live-mic-level']
     .map((k) => [k.replace(/-(\w)/g, (_, c) => c.toUpperCase()), $(k)]));
   const S = { code: store.get(), buffer: null, name: '', ctx: null, tap: null, src: null, ws: null, state: 'idle',
     first: -1, max: 180, delay: 1.24, frames: null, have: 0, music: [], playing: false, pos: 0, startedAt: 0,
@@ -97,6 +97,54 @@ export function initLive(api) {
     el.liveMic.hidden = src !== 'microphone';
     buttons();
   }
+  // ---- microphone check (no server, no GPU): level meter and device choice
+  const MIC = { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 };
+  const micConstraints = () => ({ audio: el.liveMicDevice.value ? { ...MIC, deviceId: { exact: el.liveMicDevice.value } } : MIC });
+  async function listMics() {
+    try {
+      const all = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audioinput');
+      const keep = el.liveMicDevice.value;
+      el.liveMicDevice.replaceChildren(...all.map((d, i) => Object.assign(document.createElement('option'),
+        { value: d.deviceId, textContent: d.label || `Microphone ${i + 1}` })));
+      if (keep && all.some((d) => d.deviceId === keep)) el.liveMicDevice.value = keep;
+      el.liveMicDevice.hidden = all.length < 2;
+    } catch { /* no device list */ }
+  }
+  let testing = null;
+  async function testMic() {
+    if (testing) { testing(); return; }
+    const ctx = context();
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia(micConstraints());
+    } catch (e) {
+      el.liveMicLevel.textContent = e && e.name === 'NotAllowedError' ? 'The microphone was not allowed.' : `No microphone (${e && e.message ? e.message : e}).`;
+      return;
+    }
+    await listMics();
+    const src = ctx.createMediaStreamSource(stream), an = ctx.createAnalyser();
+    an.fftSize = 4096;
+    src.connect(an);
+    const buf = new Float32Array(an.fftSize);
+    let zeros = 0, n = 0, timer = 0;
+    const stopTest = () => { clearInterval(timer); src.disconnect(); stream.getTracks().forEach((tr) => tr.stop()); testing = null; el.liveMicTest.textContent = 'Test the microphone'; };
+    testing = stopTest;
+    el.liveMicTest.textContent = 'Stop the test';
+    timer = setInterval(() => {
+      an.getFloatTimeDomainData(buf);
+      let p = 0;
+      for (const v of buf) p += v * v;
+      const db = 10 * Math.log10(p / buf.length + 1e-12);
+      zeros = p === 0 ? zeros + 1 : 0;
+      el.liveMicLevel.textContent = zeros >= 10
+        ? 'Pure silence: the microphone is blocked or the wrong one. Check the computer\'s microphone permission for the browser, or pick another microphone.'
+        : `Level ${db.toFixed(0)} dB · ${db > -50 ? 'hearing sound' : 'quiet room'}. Music from the phone should read above -40 dB.`;
+      if (++n > 150) stopTest();                 // 15 s
+    }, 100);
+  }
+  el.liveMicTest.addEventListener('click', testMic);
+  el.liveMicDevice.addEventListener('change', () => { if (testing) { testing(); testMic(); } });
+
   el.liveSrcFile.addEventListener('click', () => setSource('file'));
   el.liveSrcMic.addEventListener('click', () => setSource('microphone'));
 
@@ -195,8 +243,9 @@ export function initLive(api) {
     if (isMic()) {
       status('Asking to use the microphone…');
       try {
-        S.mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false,
-          autoGainControl: false, channelCount: 1 } });
+        if (testing) testing();
+        S.mic = await navigator.mediaDevices.getUserMedia(micConstraints());
+        listMics();
         S.micNode = ctx.createMediaStreamSource(S.mic);
         S.micNode.connect(S.tap);
       } catch (e) {
