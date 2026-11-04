@@ -11,7 +11,7 @@
 // computer's microphone streams what it hears (browser echo cancelling, noise suppression and gain control off; the
 // microphone is never played back here). The server runs the real robot's microphone chain on it, which spends the
 // first 4.7 s learning the room. Nothing is kept unless the visitor ticks the box.
-import { CLIENT, store } from './requests.js';
+import { CLIENT, store } from './requests.js?v=20261104d';   // same URL as app.js: one module
 
 export const LIVE = 'wss://pengtianhu--aheadance-live-web.us-east.modal.run/ws';
 const SR = 48000, FPS = 30, CH = 36, LEAD = 1.0, MAX_MB = 60;
@@ -112,7 +112,13 @@ export function initLive(api) {
   }
   let testing = null;
   async function testMic() {
+    try { await runMicTest(); } catch (e) {
+      el.liveMicLevel.textContent = `The microphone test failed: ${e && e.message ? e.message : e}`;
+    }
+  }
+  async function runMicTest() {
     if (testing) { testing(); return; }
+    el.liveMicLevel.textContent = 'Asking to use the microphone… (allow it in the browser prompt)';
     const ctx = context();
     let stream;
     try {

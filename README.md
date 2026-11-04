@@ -48,4 +48,6 @@ The Live tab plays a music file in the browser and streams exactly what it plays
 python -m http.server 8000
 ```
 
-Then open http://127.0.0.1:8000/. The song server accepts requests from this address and from https://ihcr.github.io.
+Then open http://127.0.0.1:8000/.
+
+When you change anything in `js/`, change the version `v=` in `index.html`, `js/app.js` and `js/live.js` (all the same) so browsers do not mix a new page with old scripts. The song server accepts requests from this address and from https://ihcr.github.io.
