@@ -9,7 +9,7 @@
 // 48 kHz 16-bit stereo WAV; the server adds 2 s of silence before it and 4 s after it, and generates the dance.
 
 export const API = 'https://pengtianhu--aheadance-api.us-east.modal.run';
-export const CONTACT = 'chengxuzhou@ucl.ac.uk';   // address shown for code requests
+export const CONTACT = 'chengxu.zhou@ucl.ac.uk';   // address shown for code requests
 const SR = 48000, MAX_SECONDS = 20, MIN_SECONDS = 5, MAX_MB = 60, POLL_MS = 8000;
 const $ = (id) => document.getElementById(id);
 const fmt = (t) => `${Math.floor(t / 60)}:${(t % 60).toFixed(1).padStart(4, '0')}`;

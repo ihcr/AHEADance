@@ -1,6 +1,6 @@
 # AHEADance
 
-The project page for AHEADance (UCL Humanoid Robotics Lab): a Unitree G1 humanoid that hears the style in the music and improvises a dance to it, never quite the same twice. Contact: chengxuzhou@ucl.ac.uk.
+The project page for AHEADance (UCL Humanoid Robotics Lab): a Unitree G1 humanoid that hears the style in the music and improvises a dance to it, never quite the same twice. Contact: chengxu.zhou@ucl.ac.uk.
 
 The site is static, so GitHub Pages serves it as is. `index.html` is the page.
 
