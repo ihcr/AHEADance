@@ -54,7 +54,7 @@ export function initLive(api) {
     .map((k) => [k.replace(/-(\w)/g, (_, c) => c.toUpperCase()), $(k)]));
   const S = { code: store.get(), buffer: null, name: '', ctx: null, tap: null, src: null, ws: null, state: 'idle',
     first: -1, max: 180, delay: 1.24, frames: null, have: 0, music: [], playing: false, pos: 0, startedAt: 0,
-    late: 0, rx: [], done: null, source: 'file', mic: null, micNode: null, out: null, level: -120, room: 0 };
+    late: 0, rx: [], done: null, source: 'file', mic: null, micNode: null, out: null, level: -120, room: 0, zeros: 0 };
   const isMic = () => S.source === 'microphone';
 
   // ---- signed in? (the same sign-in as Your song: an email token or an access code)
@@ -174,7 +174,7 @@ export function initLive(api) {
     api.begin(controller);
     const ctx = context();
     Object.assign(S, { state: 'connecting', first: -1, have: 0, music: [], playing: false, pos: 0, late: 0, rx: [],
-      done: null, frames: null, maxQueued: 0, warned: false });
+      done: null, frames: null, maxQueued: 0, warned: false, zeros: 0 });
     el.liveStats.textContent = '';
     buttons();
     status('Connecting to the live server…');
@@ -211,6 +211,13 @@ export function initLive(api) {
       let p = 0;
       for (let i = 0; i < a.length; i += 2) p += a[i] * a[i];
       S.level = 10 * Math.log10(p / Math.max(1, a.length / 2) / 1073741824 + 1e-12);   // dBFS of this 0.1 s
+      // a microphone that delivers exact zeros is blocked or the wrong device (seen 11-04: the OS had not allowed it)
+      S.zeros = p === 0 ? S.zeros + 1 : 0;
+      if (isMic() && S.state === 'live' && S.zeros === 15) {
+        status('Your microphone is sending pure silence. Check that your computer lets the browser use the microphone '
+          + '(macOS: System Settings › Privacy & Security › Microphone; Windows: Settings › Privacy › Microphone) and that '
+          + 'the browser uses the right microphone (the icon left of the address bar), then go live again.');
+      }
       send(e.data);
     };
     const ws = new WebSocket(LIVE);
@@ -338,6 +345,7 @@ export function initLive(api) {
       const r = robot(t), left = S.max - t;
       if (left < 15) return `The live session ends in ${Math.ceil(left)} s.`;
       if (isMic()) {
+        if (S.zeros >= 15) return 'The microphone is silent: check the browser\'s microphone permission (see the Live panel).';
         if (t < S.room + 0.3) return `Listening to the room. Keep it quiet for ${Math.ceil(S.room + 0.3 - t)} s more.`;
         if (r === 'standing') return S.level < -50 ? 'Now play music on your phone, near this computer.'
           : 'The model is listening. The robot answers 1.24 s behind what it hears.';
