@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { forwardKinematics } from './fk.js?v=20261105j';
-import { drawStrip, analyseMusic } from './strip.js?v=20261105j';
+import { forwardKinematics } from './fk.js?v=20261105k';
+import { drawStrip, analyseMusic } from './strip.js?v=20261105k';
 
 // Offline version: replays of dances the deployed model generated. Each programme = one audio file (exactly what the
 // model heard) + its generated motion. The robot is shown 1.24 s behind the music, as on the real robot.
@@ -522,7 +522,9 @@ function liveUI(t) {
     main.disabled = false;
     setHint(hint);
   }
-  const span = L.max, segs = L.segments(t), drawn = `${segs.length}|${Math.round(t * 4)}`;
+  // a long session (an account the lab gives more than a minute): the bar grows a minute at a time
+  const span = L.max <= 60 ? L.max : Math.min(L.max, Math.max(60, Math.ceil((t + 5) / 60) * 60));
+  const segs = L.segments(t), drawn = `${segs.length}|${Math.round(t * 4)}|${span}`;
   if (drawn !== liveDrawn) {             // music on/off so far; redrawn four times a second at most
     liveDrawn = drawn;
     const el = $('progress');
@@ -539,7 +541,7 @@ function liveUI(t) {
     fill.id = 'fill';
     el.append(fill);
   }
-  $('time').textContent = `${mmss(t)} / ${mmss(span)}`;
+  $('time').textContent = `${mmss(t)} / ${mmss(L.max)}`;
   $('fill').style.width = `${Math.min(1, t / span) * 100}%`;
 }
 
@@ -956,7 +958,7 @@ async function start() {
     P.running ? pause() : play();
   });
   showSoundStatus();
-  import('./requests.js?v=20261105j').then((m) => {
+  import('./requests.js?v=20261105k').then((m) => {
     stopOthers = m.initRequests({
       add(prog, s) {
         manifest.songs[s.id] = s;
@@ -984,7 +986,7 @@ async function start() {
   document.querySelectorAll('#view-switch button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
   if (location.hash === '#live') openLive();
   let liveCtl = null;
-  import('./live.js?v=20261105j').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd, views: () => { viewSwitch(); lastUI = ''; } }); }).catch(fail);
+  import('./live.js?v=20261105k').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd, views: () => { viewSwitch(); lastUI = ''; } }); }).catch(fail);
   $('over').addEventListener('click', () => { pause(); seek(0); });
   // hook for automated checks (tools/page_check.mjs)
   window.aheadance = { seek, play: () => play(), pause, now, rootWorld, ready: true, live: () => liveCtl,
