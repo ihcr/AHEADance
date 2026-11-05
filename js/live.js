@@ -17,8 +17,8 @@
 // (frame numbers from ready.sonic.base up). That pose comes later than the generated chunks, so the SONIC view is
 // shown ready.sonic.delay s behind the music. If the simulated robot falls or SONIC stops, the page says so and
 // switches to the generated motion; the visitor can switch back.
-import { CLIENT, store } from './requests.js?v=20261105g';   // same URL as app.js: one module
-import { drawStrip, streamAnalysis } from './strip.js?v=20261105g';
+import { CLIENT, store } from './requests.js?v=20261105h';   // same URL as app.js: one module
+import { drawStrip, streamAnalysis } from './strip.js?v=20261105h';
 
 export const LIVE = 'wss://pengtianhu--aheadance-live-web.us-east.modal.run/ws';
 const SR = 48000, FPS = 30, CH = 36, LEAD = 1.0, MAX_MB = 60;
@@ -31,7 +31,12 @@ class Tap extends AudioWorkletProcessor {
   constructor() {
     super();
     this.on = false; this.first = -1; this.n = 0; this.buf = new Int16Array(9600);
-    this.port.onmessage = (e) => { this.on = e.data === 'start' ? true : e.data === 'stop' ? false : this.on; };
+    this.mono = false; this.el = 0; this.er = 0;
+    this.port.onmessage = (e) => {
+      if (e.data === 'start') this.on = true;
+      else if (e.data === 'stop') this.on = false;
+      else if (e.data === 'mono' || e.data === 'stereo') { this.mono = e.data === 'mono'; this.el = 0; this.er = 0; }
+    };
   }
   process(inputs, outputs) {
     const inp = inputs[0] || [], out = outputs[0], n = out[0].length;
@@ -40,8 +45,15 @@ class Tap extends AudioWorkletProcessor {
     if (out[1]) out[1].set(r || new Float32Array(n));
     if (!this.on) return true;
     if (this.first < 0) { this.first = currentFrame; this.port.postMessage({ first: currentFrame }); }
+    // microphone: the server reads one channel, as the robot's mic (dual mono). Safari on a Mac gives the built-in
+    // mic on the left channel only, the right one silent (11-05), so send the channel that has the sound on both.
+    let L = l, R = r;
+    if (this.mono && l && r && l !== r) {
+      for (let i = 0; i < n; i++) { this.el += l[i] * l[i]; this.er += r[i] * r[i]; }
+      L = R = this.er > this.el ? r : l;
+    }
     for (let i = 0; i < n; i++) {
-      const a = l ? l[i] : 0, b = r ? r[i] : 0;
+      const a = L ? L[i] : 0, b = R ? R[i] : 0;
       this.buf[2 * this.n] = Math.max(-32768, Math.min(32767, Math.round(a * 32768)));
       this.buf[2 * this.n + 1] = Math.max(-32768, Math.min(32767, Math.round(b * 32768)));
       if (++this.n === 4800) {
@@ -314,6 +326,7 @@ export function initLive(api) {
         if (m.sonic) Object.assign(S, { sonic: m.sonic, sim: new Float32Array(m.seconds * FPS * CH + 64 * CH),
           simSpeed: new Float32Array(m.seconds * FPS + 64), simState: 'on' });
         api.views();
+        S.tap.port.postMessage(isMic() ? 'mono' : 'stereo');
         S.tap.port.postMessage('start');
         el.liveVizWrap.hidden = false;
         if (isMic()) {
