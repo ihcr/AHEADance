@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { forwardKinematics } from './fk.js?v=20261105k';
-import { drawStrip, analyseMusic } from './strip.js?v=20261105k';
+import { forwardKinematics } from './fk.js?v=20261105l';
+import { drawStrip, analyseMusic } from './strip.js?v=20261105l';
 
 // Offline version: replays of dances the deployed model generated. Each programme = one audio file (exactly what the
 // model heard) + its generated motion. The robot is shown 1.24 s behind the music, as on the real robot.
@@ -910,28 +910,42 @@ function takeSound(v) {                  // v plays with sound: everything else 
 videos.forEach((v) => v.addEventListener('play', () => { if (!(v.id === 'film' && v.muted)) takeSound(v); }));
 // The film (user 11-05): plays by default (autoplay muted in the HTML, so it starts without this script), with player
 // controls and sound on by default. Browsers refuse sound before the visitor's first click or key on the page (an
-// unmuted film is paused), so then it plays muted and its sound comes on at that first click or key, if the film is
-// still on screen and the click is not on the film itself (its own controls decide there).
+// unmuted film is paused), so then it plays muted ("held": muted by the browser, not by the visitor) and its sound
+// comes on at the first click or key while the film is on screen. A click on the picture itself turns the sound on
+// instead of pausing (Chrome pauses on a click); a click on the control bar is left to the controls.
 const film = $('film');
-film.addEventListener('volumechange', () => { if (!film.muted && !film.paused) takeSound(film); });
+let held = false;
+film.addEventListener('volumechange', () => { if (!film.muted) held = false; if (!film.muted && !film.paused) takeSound(film); });
 let filmSeen = true;
 new IntersectionObserver(([e]) => { filmSeen = e.intersectionRatio >= 0.3; }, { threshold: [0, 0.3, 1] }).observe(film);
-function filmSoundLater() {
-  const kinds = ['pointerdown', 'pointerup', 'keydown'];
-  const done = () => kinds.forEach((k) => document.removeEventListener(k, on, true));
-  function on(e) {
-    if (e.target === film || !film.muted || film.paused) { done(); return; }
-    if (navigator.userActivation && !navigator.userActivation.isActive) return;   // e.g. a touch that scrolls
-    if (!filmSeen) return;
-    done();
-    film.muted = false;
-    if (film.paused) film.play().catch(() => { film.muted = true; film.play().catch(() => {}); });
-  }
-  kinds.forEach((k) => document.addEventListener(k, on, true));
+const kinds = ['pointerdown', 'pointerup', 'keydown'];
+function soundNow() {                      // inside a click or key: the browser now allows sound
+  held = false;
+  kinds.forEach((k) => document.removeEventListener(k, onGesture, true));
+  film.muted = false;
+  if (film.paused) film.play().catch(() => { film.muted = true; film.play().catch(() => {}); });
 }
+function onGesture(e) {
+  if (e.target === film) return;           // the film's own click handler decides
+  if (!held || !film.muted || film.paused) { held = false; kinds.forEach((k) => document.removeEventListener(k, onGesture, true)); return; }
+  if (navigator.userActivation && !navigator.userActivation.isActive) return;   // e.g. a touch that scrolls
+  if (filmSeen) soundNow();
+}
+film.addEventListener('click', (e) => {
+  if (!held) return;
+  const r = film.getBoundingClientRect();
+  if (e.clientY > r.bottom - 64) { held = false; return; }      // the control bar: the controls decide
+  e.preventDefault();                       // no pause: this click is for the sound
+  soundNow();
+});
 if (reduceMotion) { film.removeAttribute('autoplay'); film.pause(); }
 else {
-  const quiet = () => { film.muted = true; film.play().catch(() => {}); filmSoundLater(); };
+  const quiet = () => {
+    film.muted = true;
+    held = true;
+    film.play().catch(() => {});
+    kinds.forEach((k) => document.addEventListener(k, onGesture, true));
+  };
   film.muted = false;
   film.play().then(() => { if (film.paused || film.muted) quiet(); }).catch(quiet);
 }
@@ -958,7 +972,7 @@ async function start() {
     P.running ? pause() : play();
   });
   showSoundStatus();
-  import('./requests.js?v=20261105k').then((m) => {
+  import('./requests.js?v=20261105l').then((m) => {
     stopOthers = m.initRequests({
       add(prog, s) {
         manifest.songs[s.id] = s;
@@ -986,7 +1000,7 @@ async function start() {
   document.querySelectorAll('#view-switch button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
   if (location.hash === '#live') openLive();
   let liveCtl = null;
-  import('./live.js?v=20261105k').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd, views: () => { viewSwitch(); lastUI = ''; } }); }).catch(fail);
+  import('./live.js?v=20261105l').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd, views: () => { viewSwitch(); lastUI = ''; } }); }).catch(fail);
   $('over').addEventListener('click', () => { pause(); seek(0); });
   // hook for automated checks (tools/page_check.mjs)
   window.aheadance = { seek, play: () => play(), pause, now, rootWorld, ready: true, live: () => liveCtl,
