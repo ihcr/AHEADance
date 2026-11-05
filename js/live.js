@@ -11,7 +11,7 @@
 // computer's microphone streams what it hears (browser echo cancelling, noise suppression and gain control off; the
 // microphone is never played back here). The server runs the real robot's microphone chain on it, which spends the
 // first 4.7 s learning the room. Nothing is kept unless the visitor ticks the box.
-import { CLIENT, store } from './requests.js?v=20261105a';   // same URL as app.js: one module
+import { CLIENT, store } from './requests.js?v=20261105b';   // same URL as app.js: one module
 
 export const LIVE = 'wss://pengtianhu--aheadance-live-web.us-east.modal.run/ws';
 const SR = 48000, FPS = 30, CH = 36, LEAD = 1.0, MAX_MB = 60;
@@ -399,7 +399,7 @@ export function initLive(api) {
     g.fillText('What the model hears', pad, 6);
     g.textAlign = 'right';
     g.fillStyle = orange;
-    g.fillText(`Robot, ${S.delay.toFixed(2)} s later`, split - pad, 6);
+    g.fillText('Robot', split - pad, 6);
     g.textAlign = 'left';
     const lv = S.levels, i0 = Math.max(0, Math.floor((t - W) / 0.1));
     g.fillStyle = blue;
@@ -509,11 +509,11 @@ export function initLive(api) {
         if (S.zeros >= 15) return 'The microphone is silent: check the browser\'s microphone permission (see the Live panel).';
         if (t < S.room + 0.3) return `Listening to the room. Keep it quiet for ${Math.ceil(S.room + 0.3 - t)} s more.`;
         if (r === 'standing') return S.level < -50 ? 'Now play music on your phone, near this computer.'
-          : 'The model is listening. The robot answers 1.24 s behind what it hears.';
+          : 'The model is listening. The robot answers a moment after it hears.';
         return 'Stop the music or switch songs on your phone, and watch the robot follow.';
       }
       if (!S.music.length) return 'The robot is standing. The music starts in a moment.';
-      if (S.playing) return t - S.music[S.music.length - 1].at < S.delay + 0.3 ? 'The model is listening. The robot answers 1.24 s behind the music.'
+      if (S.playing) return t - S.music[S.music.length - 1].at < S.delay + 0.3 ? 'The model is listening. The robot answers a moment after the music.'
         : 'Live. Pause the music any time and watch the robot react.';
       if (S.pos >= S.buffer.duration - 0.05) return r === 'standing' ? 'The music has ended and the robot is standing.' : 'The music has ended. The robot heard the silence and is settling.';
       return r === 'standing' ? 'Music paused. The robot is standing. Play the music again.' : 'Music paused. The robot heard the silence and is settling.';
