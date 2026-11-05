@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { forwardKinematics } from './fk.js?v=20261105c';
-import { drawStrip, analyseMusic } from './strip.js?v=20261105c';
+import { forwardKinematics } from './fk.js?v=20261105d';
+import { drawStrip, analyseMusic } from './strip.js?v=20261105d';
 
 // Offline version: replays of dances the deployed model generated. Each programme = one audio file (exactly what the
 // model heard) + its generated motion. The robot is shown 1.24 s behind the music, as on the real robot.
@@ -200,16 +200,41 @@ function computeActivity(fr, n, ch, fps) {
   }
   return out;
 }
+// What the robot shows: 'sim' = SONIC, the whole-body controller of our robot, executing the generated motion in the
+// MuJoCo simulator (replays that have it, p.motion_sim); 'gen' = the generated motion itself. Same frames, same clock.
+let view = 'sim';
+const motionOf = (p) => (view === 'sim' && p.motion_sim ? p.motion_sim : p.motion);
 function loadMotion(p) {
-  if (!motionCache.has(p.id)) {
-    motionCache.set(p.id, getBuffer(p.motion.file, p.motion.base64 ?? p.motion.file.endsWith('.b64.txt')).then((buf) => {
-      const raw = new Int16Array(buf), ch = p.motion.channels;
+  const d = motionOf(p), key = `${p.id}|${d.file}`;
+  if (!motionCache.has(key)) {
+    motionCache.set(key, getBuffer(d.file, d.base64 ?? d.file.endsWith('.b64.txt')).then((buf) => {
+      const raw = new Int16Array(buf), ch = d.channels;
       const frames = new Float32Array(raw.length);
-      for (let i = 0; i < raw.length; i++) frames[i] = raw[i] * p.motion.scale[i % ch];
-      return { frames, activity: computeActivity(frames, p.motion.frames, ch, p.motion.fps) };
+      for (let i = 0; i < raw.length; i++) frames[i] = raw[i] * d.scale[i % ch];
+      return { frames, activity: computeActivity(frames, d.frames, ch, d.fps) };
     }));
   }
-  return motionCache.get(p.id);
+  return motionCache.get(key);
+}
+function viewSwitch() {
+  const sw = $('view-switch'), has = !L && P.prog && P.prog.motion_sim;
+  sw.hidden = !has;
+  sw.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === (has ? view : 'gen'))));
+}
+function setView(v) {
+  if (v === view) return;
+  view = v;
+  viewSwitch();
+  const p = P.prog;
+  if (!p) return;
+  loadMotion(p).then((motion) => {
+    if (P.prog !== p || L) return;
+    P.motion = motion;
+    drawDetails();
+    poseAt(now());
+    follow(1);
+    lastUI = '';
+  });
 }
 const song = (id) => manifest.songs[id];
 const songsOf = (p) => [...new Set(p.segments.filter((s) => s.kind === 'music').map((s) => s.song))];
@@ -449,6 +474,7 @@ function liveBegin(ctrl) {
   $('axis').dataset.span = '';
   $('over').hidden = true;
   $('stage-hint').hidden = true;
+  viewSwitch();
   if (narrow.matches) stageEl.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
 }
 function liveEnd() {
@@ -459,6 +485,7 @@ function liveEnd() {
   $('axis').dataset.span = '';
   $('stage-hint').hidden = false;
   $('live-viz-wrap').hidden = !P.prog;
+  viewSwitch();
 }
 function replayStrip(t) {
   if ($('live-viz-wrap').hidden) return;
@@ -683,6 +710,7 @@ function programmeChanged() {
   $('look-title').textContent = titleOf(P.prog);
   drawProgress();
   document.querySelectorAll('.row').forEach((el) => el.classList.toggle('current', el.dataset.id === P.prog.id));
+  viewSwitch();
   lastUI = '';
 }
 
@@ -899,7 +927,7 @@ async function start() {
     P.running ? pause() : play();
   });
   showSoundStatus();
-  import('./requests.js?v=20261105c').then((m) => {
+  import('./requests.js?v=20261105d').then((m) => {
     stopOthers = m.initRequests({
       add(prog, s) {
         manifest.songs[s.id] = s;
@@ -924,9 +952,10 @@ async function start() {
     (narrow.matches ? $('live') : $('demo')).scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
   };
   $('go-live-btn').addEventListener('click', (e) => { e.preventDefault(); openLive(); });
+  document.querySelectorAll('#view-switch button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
   if (location.hash === '#live') openLive();
   let liveCtl = null;
-  import('./live.js?v=20261105c').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd }); }).catch(fail);
+  import('./live.js?v=20261105d').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd }); }).catch(fail);
   $('over').addEventListener('click', () => { pause(); seek(0); });
   // hook for automated checks (tools/page_check.mjs)
   window.aheadance = { seek, play: () => play(), pause, now, rootWorld, ready: true, live: () => liveCtl,

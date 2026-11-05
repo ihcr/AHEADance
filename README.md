@@ -14,6 +14,8 @@ The site is static, so GitHub Pages serves it as is. `index.html` is the page.
 | `js/requests.js` | "Your song": send 30 s of music with an access code |
 | `js/live.js` | "Live": the model dances to a music file as it plays |
 | `js/strip.js` | The strip under the stage: rhythm, spectrogram, volume and spectrum of the music, and the robot's joint speed (replays and Live) |
+
+Replays have two motions on one clock: `motion` (what the deployed model generated) and `motion_sim` (SONIC, the whole-body controller our robot runs, executing that same generated motion in headless MuJoCo; AudioMimic `project_page/tools/sonic_replays.py` and `sonic_to_page.py`). The page shows `motion_sim` by default with a switch to the generated motion; Live and the songs visitors send show the generated motion.
 | `assets/` | G1 model from the Unitree MJCF (BSD-3-Clause): `g1.json` (tree) and `g1_meshes.bin` (int16 meshes) |
 | `clips/manifest.json`, `clips/*.bin` | One entry per dance in the web demo: segments, plus 30 fps motion (root position, root quaternion, 29 joint angles) as int16 with per-channel scales |
 | `audio/*.mp3` | The audio each dance was generated from (96 kb/s) |
@@ -39,7 +41,7 @@ The Live tab plays a music file in the browser and streams exactly what it plays
 - Every session draws a new random seed, so the same music gives a new dance each time.
 - Microphone (beta): the music plays on another device, such as a phone, and the browser streams what the computer's microphone hears (echo cancelling, noise suppression and gain control off; never played back). The server runs the real robot's microphone chain on it (a music gate that first learns the room for 4.7 s). Recordings are kept only if the visitor ticks the box.
 - One visitor at a time, at most 1 minute per session. Others wait in line (up to 5), with their place and an estimated wait.
-- Each email address gets 3 live sessions a day. Lab codes have no limit.
+- Each email address gets 2 live sessions a day. Lab codes have no limit.
 - The first visitor in a while waits about a minute while the cloud GPU starts.
 - The audio is not kept.
 
