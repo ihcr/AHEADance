@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { forwardKinematics } from './fk.js?v=20261104j';
+import { forwardKinematics } from './fk.js?v=20261105a';
 
 // Offline version: replays of dances the deployed model generated. Each programme = one audio file (exactly what the
 // model heard) + its generated motion. The robot is shown 1.24 s behind the music, as on the real robot.
@@ -49,6 +49,22 @@ controls.maxDistance = 9;
 controls.maxPolarAngle = Math.PI * 0.49;
 let needsRender = true;
 controls.addEventListener('change', () => { needsRender = true; });
+
+// Wheel zoom. OrbitControls r160 divides the wheel delta by (devicePixelRatio | 0), which is 0 when the browser is
+// zoomed out below 100%: one wheel step then jumps straight to the nearest or farthest view. Zoom here instead, in
+// proportion to how far the wheel turned (about 8% per mouse notch); pinch zoom on touch screens stays with OrbitControls.
+stageEl.addEventListener('wheel', (e) => {
+  if (e.target !== renderer.domElement) return;
+  e.preventDefault();
+  e.stopPropagation();                               // capture phase: OrbitControls' own wheel handler never runs
+  let px = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? stageEl.clientHeight : 1);
+  if (e.ctrlKey) px *= 5;                            // touchpad pinch arrives as small ctrl+wheel steps
+  px = Math.max(-300, Math.min(300, px));
+  const offset = camera.position.clone().sub(controls.target);
+  const d = THREE.MathUtils.clamp(offset.length() * Math.pow(0.92, -px / 100), controls.minDistance, controls.maxDistance);
+  camera.position.copy(controls.target).add(offset.setLength(d));
+  needsRender = true;
+}, { capture: true, passive: false });
 
 scene.add(new THREE.HemisphereLight(0xffffff, 0xb8bcc4, 1.9));
 const sun = new THREE.DirectionalLight(0xffffff, 1.9);
@@ -858,7 +874,7 @@ async function start() {
     P.running ? pause() : play();
   });
   showSoundStatus();
-  import('./requests.js?v=20261104j').then((m) => {
+  import('./requests.js?v=20261105a').then((m) => {
     stopOthers = m.initRequests({
       add(prog, s) {
         manifest.songs[s.id] = s;
@@ -885,7 +901,7 @@ async function start() {
   $('go-live-btn').addEventListener('click', (e) => { e.preventDefault(); openLive(); });
   if (location.hash === '#live') openLive();
   let liveCtl = null;
-  import('./live.js?v=20261104j').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd }); }).catch(fail);
+  import('./live.js?v=20261105a').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd }); }).catch(fail);
   $('over').addEventListener('click', () => { pause(); seek(0); });
   // hook for automated checks (tools/page_check.mjs)
   window.aheadance = { seek, play: () => play(), pause, now, rootWorld, ready: true, live: () => liveCtl,
