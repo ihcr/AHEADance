@@ -108,10 +108,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .film-wrap { padding-block: 52px 0; }
 .film { position: relative; max-width: var(--wide); margin: 0 auto; }
 .film video { width: 100%; aspect-ratio: 16 / 9; border-radius: var(--r-lg); display: block; background: var(--media); object-fit: cover; }
-.sound-toggle {
-  position: absolute; right: 16px; bottom: 16px; border: 0; border-radius: 999px; padding: 8px 15px; font-size: 13px; font-weight: 500;
-  background: rgba(29, 29, 31, 0.62); color: #ffffff; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
-}
 .film-cap { text-align: center; color: var(--ink2); font-size: 15px; margin: 16px auto 0; max-width: 46em; }
 
 /* sections */
@@ -376,8 +372,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
 
   <section class="film-wrap gutter" aria-label="Film">
     <figure class="film">
-      <video id="film" src="media/styles_grid.mp4" poster="media/styles_grid.jpg" autoplay muted loop playsinline preload="metadata"></video>
-      <button class="sound-toggle" id="film-sound" type="button">Sound on</button>
+      <video id="film" src="media/styles_grid.mp4" poster="media/styles_grid.jpg" controls loop playsinline preload="metadata"></video>
     </figure>
     <p class="film-cap">A Unitree G1 dancing to eight songs in seven styles, each played from an audio file. One model for all of them; it is never told the style.</p>
   </section>
@@ -687,7 +682,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
 } }
 </script>
-<script type="module" src="js/app.js?v=20261105f"></script>   <!-- bump v with every change to js/ (browsers cache 10 min) -->
+<script type="module" src="js/app.js?v=20261105g"></script>   <!-- bump v with every change to js/ (browsers cache 10 min) -->
 
 </body>
 </html>

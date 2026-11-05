@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { forwardKinematics } from './fk.js?v=20261105f';
-import { drawStrip, analyseMusic } from './strip.js?v=20261105f';
+import { forwardKinematics } from './fk.js?v=20261105g';
+import { drawStrip, analyseMusic } from './strip.js?v=20261105g';
 
 // Offline version: replays of dances the deployed model generated. Each programme = one audio file (exactly what the
 // model heard) + its generated motion. The robot is shown 1.24 s behind the music, as on the real robot.
@@ -899,21 +899,37 @@ function loop() {
 // one sound at a time: a film or clip that starts pauses the web demo, and the web demo pauses the videos
 const videos = [...document.querySelectorAll('video')];
 let stopOthers = () => {};               // the Your song preview
-function pauseVideos() { stopOthers(); videos.forEach((v) => { if (v.id !== 'film') v.pause(); else if (!v.muted) { v.muted = true; filmLabel(); } }); }
-function filmLabel() { $('film-sound').textContent = $('film').muted ? 'Sound on' : 'Sound off'; }
-videos.forEach((v) => v.addEventListener('play', () => {
-  if (v.id === 'film' && v.muted) return;
+function pauseVideos() { stopOthers(); videos.forEach((v) => { if (v.id !== 'film') v.pause(); else v.muted = true; }); }
+function takeSound(v) {                  // v plays with sound: everything else goes quiet (the film keeps playing muted)
   pause();
   if (L && L.playing()) L.toggle();
-  videos.forEach((o) => { if (o !== v) { if (o.id === 'film') { o.muted = true; filmLabel(); } else o.pause(); } });
-}));
-$('film-sound').addEventListener('click', () => {
-  const f = $('film');
-  f.muted = !f.muted;
-  filmLabel();
-  if (!f.muted) { pause(); videos.forEach((o) => { if (o !== f) o.pause(); }); f.play().catch(() => {}); }
-});
-if (reduceMotion) { $('film').removeAttribute('autoplay'); $('film').pause(); }
+  videos.forEach((o) => { if (o !== v) { if (o.id === 'film') o.muted = true; else o.pause(); } });
+}
+videos.forEach((v) => v.addEventListener('play', () => { if (!(v.id === 'film' && v.muted)) takeSound(v); }));
+// The film (user 11-05): player controls, sound on by default. Browsers refuse sound before the visitor's first
+// click or key on the page, so then it starts muted and its sound comes on at that first click or key, if the film
+// is still on screen and the click is not on the film itself (its own controls decide there).
+const film = $('film');
+film.addEventListener('volumechange', () => { if (!film.muted && !film.paused) takeSound(film); });
+let filmSeen = true;
+new IntersectionObserver(([e]) => { filmSeen = e.intersectionRatio >= 0.3; }, { threshold: [0, 0.3, 1] }).observe(film);
+function filmSoundLater() {
+  const kinds = ['pointerdown', 'pointerup', 'keydown'];
+  const done = () => kinds.forEach((k) => document.removeEventListener(k, on, true));
+  function on(e) {
+    if (e.target === film || !film.muted || film.paused) { done(); return; }
+    if (navigator.userActivation && !navigator.userActivation.isActive) return;   // e.g. a touch that scrolls
+    if (!filmSeen) return;
+    done();
+    film.muted = false;
+    if (film.paused) film.play().catch(() => { film.muted = true; film.play().catch(() => {}); });
+  }
+  kinds.forEach((k) => document.addEventListener(k, on, true));
+}
+if (!reduceMotion) {
+  film.muted = false;
+  film.play().catch(() => { film.muted = true; film.play().catch(() => {}); filmSoundLater(); });
+}
 
 function fail(err) {
   console.error(err);
@@ -937,7 +953,7 @@ async function start() {
     P.running ? pause() : play();
   });
   showSoundStatus();
-  import('./requests.js?v=20261105f').then((m) => {
+  import('./requests.js?v=20261105g').then((m) => {
     stopOthers = m.initRequests({
       add(prog, s) {
         manifest.songs[s.id] = s;
@@ -951,7 +967,7 @@ async function start() {
         select(prog, true).catch(fail);
         stageEl.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
       },
-      pauseAll() { pause(); videos.forEach((v) => { if (v.id !== 'film') v.pause(); else if (!v.muted) { v.muted = true; filmLabel(); } }); },
+      pauseAll() { pause(); videos.forEach((v) => { if (v.id !== 'film') v.pause(); else v.muted = true; }); },
     }).stop;
   }).catch(fail);
   // the Live card's button: open the Live tab next to the robot
@@ -965,7 +981,7 @@ async function start() {
   document.querySelectorAll('#view-switch button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
   if (location.hash === '#live') openLive();
   let liveCtl = null;
-  import('./live.js?v=20261105f').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd, views: () => { viewSwitch(); lastUI = ''; } }); }).catch(fail);
+  import('./live.js?v=20261105g').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd, views: () => { viewSwitch(); lastUI = ''; } }); }).catch(fail);
   $('over').addEventListener('click', () => { pause(); seek(0); });
   // hook for automated checks (tools/page_check.mjs)
   window.aheadance = { seek, play: () => play(), pause, now, rootWorld, ready: true, live: () => liveCtl,

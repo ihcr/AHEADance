@@ -17,8 +17,8 @@
 // (frame numbers from ready.sonic.base up). That pose comes later than the generated chunks, so the SONIC view is
 // shown ready.sonic.delay s behind the music. If the simulated robot falls or SONIC stops, the page says so and
 // switches to the generated motion; the visitor can switch back.
-import { CLIENT, store } from './requests.js?v=20261105f';   // same URL as app.js: one module
-import { drawStrip, streamAnalysis } from './strip.js?v=20261105f';
+import { CLIENT, store } from './requests.js?v=20261105g';   // same URL as app.js: one module
+import { drawStrip, streamAnalysis } from './strip.js?v=20261105g';
 
 export const LIVE = 'wss://pengtianhu--aheadance-live-web.us-east.modal.run/ws';
 const SR = 48000, FPS = 30, CH = 36, LEAD = 1.0, MAX_MB = 60;
