@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { forwardKinematics } from './fk.js?v=20261105l';
-import { drawStrip, analyseMusic } from './strip.js?v=20261105l';
+import { forwardKinematics } from './fk.js?v=20261105m';
+import { drawStrip, analyseMusic } from './strip.js?v=20261105m';
 
 // Offline version: replays of dances the deployed model generated. Each programme = one audio file (exactly what the
 // model heard) + its generated motion. The robot is shown 1.24 s behind the music, as on the real robot.
@@ -925,16 +925,20 @@ function soundNow() {                      // inside a click or key: the browser
   film.muted = false;
   if (film.paused) film.play().catch(() => { film.muted = true; film.play().catch(() => {}); });
 }
+const inBar = (e) => e.clientY > film.getBoundingClientRect().bottom - 64;     // the film's control bar
 function onGesture(e) {
-  if (e.target === film) return;           // the film's own click handler decides
+  if (e.target === film) {                 // a mouse click: the film's click handler decides; a tap (phones show
+    if (e.type === 'pointerup' && e.pointerType !== 'mouse' && held && !inBar(e)   // their controls and send no
+        && !(navigator.userActivation && !navigator.userActivation.isActive)) soundNow();   // click): sound here
+    return;
+  }
   if (!held || !film.muted || film.paused) { held = false; kinds.forEach((k) => document.removeEventListener(k, onGesture, true)); return; }
   if (navigator.userActivation && !navigator.userActivation.isActive) return;   // e.g. a touch that scrolls
   if (filmSeen) soundNow();
 }
 film.addEventListener('click', (e) => {
   if (!held) return;
-  const r = film.getBoundingClientRect();
-  if (e.clientY > r.bottom - 64) { held = false; return; }      // the control bar: the controls decide
+  if (inBar(e)) { held = false; return; }                      // the control bar: the controls decide
   e.preventDefault();                       // no pause: this click is for the sound
   soundNow();
 });
@@ -972,7 +976,7 @@ async function start() {
     P.running ? pause() : play();
   });
   showSoundStatus();
-  import('./requests.js?v=20261105l').then((m) => {
+  import('./requests.js?v=20261105m').then((m) => {
     stopOthers = m.initRequests({
       add(prog, s) {
         manifest.songs[s.id] = s;
@@ -1000,7 +1004,7 @@ async function start() {
   document.querySelectorAll('#view-switch button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
   if (location.hash === '#live') openLive();
   let liveCtl = null;
-  import('./live.js?v=20261105l').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd, views: () => { viewSwitch(); lastUI = ''; } }); }).catch(fail);
+  import('./live.js?v=20261105m').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd, views: () => { viewSwitch(); lastUI = ''; } }); }).catch(fail);
   $('over').addEventListener('click', () => { pause(); seek(0); });
   // hook for automated checks (tools/page_check.mjs)
   window.aheadance = { seek, play: () => play(), pause, now, rootWorld, ready: true, live: () => liveCtl,
