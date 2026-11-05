@@ -131,7 +131,7 @@ export function initRequests(api) {
   function signedOut(msg) {
     clearTimeout(S.timer);
     Object.assign(S, { code: '', me: null, mine: [], all: [] });
-    setStatus(msg || 'Sign in with your email to send songs.');
+    setStatus(msg || 'Sign in with your email to send songs and to go live.');
     el.mailForm.hidden = !!S.email;
     el.verifyForm.hidden = !S.email;
     el.mailNote.hidden = false;
@@ -152,7 +152,7 @@ export function initRequests(api) {
     try {
       await call('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
       S.email = email;
-      el.mailMsg.textContent = `We sent a 6-digit code to ${email}. It works for 15 minutes. Not there? Check your spam folder.`;
+      el.mailMsg.textContent = `We sent a 6-digit code to ${email} from AHEADance <aheadance@gmail.com>. It works for 15 minutes. Not there? Please also check your junk email.`;
       el.mailForm.hidden = true;
       el.verifyForm.hidden = false;
       el.verifyInput.value = '';
@@ -255,13 +255,15 @@ export function initRequests(api) {
   function render() {
     if (!S.me) return;
     const n = S.mine.length, lab = S.me.role === 'lab', shared = S.me.shared, mail = S.me.email;
-    const own = lab ? Infinity : Math.max(0, S.me.limit - n), today = S.me.today_left ?? Infinity;
+    const free = lab || S.me.limit == null;        // a lab code, or an address with no limit (server: set_vip)
+    const own = free ? Infinity : Math.max(0, S.me.limit - n), today = S.me.today_left ?? Infinity;
     const left = Math.min(own, today);
     setStatus(lab ? 'Lab code: send as many songs as you like. You also see everyone\'s songs.'
+      : free ? 'No limit: send as many songs as you like, and go live as often as you like.'
       : !own ? (shared || mail ? `You have sent your ${S.me.limit} songs.` : `This code has sent its ${S.me.limit} songs.`)
         : !today ? 'Today\'s songs are all taken. Please try again tomorrow.'
           : `You can send ${left} more song${left > 1 ? 's' : ''} (${S.me.limit} per ${mail ? 'email' : shared ? 'person' : 'code'}).`);
-    if (!lab && !own) showAsk(true); else el.ownAsk.hidden = true;
+    if (!free && !own) showAsk(true); else el.ownAsk.hidden = true;
     const full = left === 0;
     el.sendForm.classList.toggle('full', full);
     el.sendGo.disabled = full || S.busy || !S.decoded;

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { forwardKinematics } from './fk.js?v=20261105e';
-import { drawStrip, analyseMusic } from './strip.js?v=20261105e';
+import { forwardKinematics } from './fk.js?v=20261105f';
+import { drawStrip, analyseMusic } from './strip.js?v=20261105f';
 
 // Offline version: replays of dances the deployed model generated. Each programme = one audio file (exactly what the
 // model heard) + its generated motion. The robot is shown 1.24 s behind the music, as on the real robot.
@@ -937,7 +937,7 @@ async function start() {
     P.running ? pause() : play();
   });
   showSoundStatus();
-  import('./requests.js?v=20261105e').then((m) => {
+  import('./requests.js?v=20261105f').then((m) => {
     stopOthers = m.initRequests({
       add(prog, s) {
         manifest.songs[s.id] = s;
@@ -965,7 +965,7 @@ async function start() {
   document.querySelectorAll('#view-switch button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
   if (location.hash === '#live') openLive();
   let liveCtl = null;
-  import('./live.js?v=20261105e').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd, views: () => { viewSwitch(); lastUI = ''; } }); }).catch(fail);
+  import('./live.js?v=20261105f').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd, views: () => { viewSwitch(); lastUI = ''; } }); }).catch(fail);
   $('over').addEventListener('click', () => { pause(); seek(0); });
   // hook for automated checks (tools/page_check.mjs)
   window.aheadance = { seek, play: () => play(), pause, now, rootWorld, ready: true, live: () => liveCtl,
