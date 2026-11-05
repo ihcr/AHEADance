@@ -1,4 +1,4 @@
-// "Your song": send up to 20 s of music; our server runs the same model on it and the dance comes back to this page.
+// "Your song": send up to 30 s of music; our server runs the same model on it and the dance comes back to this page.
 //
 // Who may send (user 11-04): anyone who signs in with an email address. The server emails a 6-digit code; the page
 // trades it for a personal access token kept in this browser. Each address has its own 2 songs (the lab can give
@@ -13,7 +13,7 @@
 
 export const API = 'https://pengtianhu--aheadance-api.us-east.modal.run';
 export const CONTACT = 'chengxu.zhou@ucl.ac.uk';   // address shown for code requests
-const SR = 48000, MAX_SECONDS = 20, MIN_SECONDS = 5, MAX_MB = 60, POLL_MS = 8000;
+const SR = 48000, MAX_SECONDS = 30, MIN_SECONDS = 5, MAX_MB = 60, POLL_MS = 8000;
 const $ = (id) => document.getElementById(id);
 const fmt = (t) => `${Math.floor(t / 60)}:${(t % 60).toFixed(1).padStart(4, '0')}`;
 const STATUS = {

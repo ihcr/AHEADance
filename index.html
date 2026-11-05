@@ -163,10 +163,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .caption .music.on .dot { background: var(--blue); }
 .caption .robot .dot { background: var(--robot-fill); }
 .stage-hint { position: absolute; right: 18px; bottom: 14px; font-size: 13px; color: var(--ink2); pointer-events: none; }
-.live-viz { position: absolute; left: 12px; right: 12px; bottom: 12px; height: 104px; border-radius: 14px; pointer-events: none;
-  background: color-mix(in srgb, var(--card) 86%, transparent); box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08); }
-.stage .live-viz canvas { position: static; display: block; width: 100%; height: 100%; touch-action: auto; }
-@media (max-width: 734px) { .live-viz { height: 78px; left: 8px; right: 8px; bottom: 8px; } }
+.live-viz { height: 150px; border-radius: 22px; background: var(--media); overflow: hidden; }
+.live-viz canvas { display: block; width: 100%; height: 100%; }
+@media (max-width: 734px) { .live-viz { height: 132px; border-radius: 18px; } }
 .bar { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: center; background: var(--media); border-radius: 999px; padding: 8px 22px 8px 8px; }
 .big { width: 52px; height: 52px; border-radius: 50%; border: 0; background: var(--blue); color: var(--blue-ink); display: grid; place-items: center; transition: transform 0.15s ease; }
 .big:active { transform: scale(0.95); }
@@ -519,8 +518,8 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
             <p class="robot"><span class="dot"></span><span id="cap-robot-text">Robot: standing</span></p>
           </div>
           <p class="stage-hint" id="stage-hint">Drag to turn</p>
-          <div class="live-viz" id="live-viz-wrap" hidden aria-hidden="true"><canvas id="live-viz"></canvas></div>
         </div>
+        <div class="live-viz" id="live-viz-wrap" hidden aria-hidden="true"><canvas id="live-viz"></canvas></div>
         <div class="bar">
           <button class="big" id="main" type="button" aria-label="Play" disabled></button>
           <div class="bar-main">
@@ -541,7 +540,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
           <div class="tabs" id="tabs" role="tablist" aria-label="Kinds of dance"></div>
           <p class="tab-note" id="tab-note"></p>
           <div class="tab-note" id="own" hidden>
-            <p>Send us up to 20 s of music and we add the robot's dance to this list. <a href="#yours">How it works</a></p>
+            <p>Send us up to 30 s of music and we add the robot's dance to this list. <a href="#yours">How it works</a></p>
           </div>
           <div class="live" id="live" hidden>
             <p class="live-note">Play a music file here. Our model on a cloud GPU listens as it plays, and the robot dances to it, as on the real robot. Pause the music and the robot settles; play it again and the robot dances again.</p>
@@ -609,7 +608,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
   <section class="band section gutter" id="yours" aria-labelledby="yours-h">
     <div class="request">
       <p class="eyebrow">Your song</p>
-      <h2 id="yours-h">Send us 20 seconds.</h2>
+      <h2 id="yours-h">Send us 30 seconds.</h2>
       <p class="lead">We put 2 s of silence before your music and 4 s after it, so the robot starts and ends standing. Then we run the same model on it on a cloud GPU, and the dance appears in your web demo under Your song. Only you and our lab see your songs.</p>
       <p class="status" id="own-status">Sign in with your email to send songs.</p>
       <form class="code-form" id="mail-form" hidden>
@@ -636,7 +635,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
           <label class="drop" id="send-drop">
             <input type="file" id="send-file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac">
             <span class="drop-main">Choose a music file</span>
-            <span class="drop-sub">MP3, WAV, M4A … up to 60 MB. Only the 20 s you pick are sent.</span>
+            <span class="drop-sub">MP3, WAV, M4A … up to 60 MB. Only the 30 s you pick are sent.</span>
           </label>
           <div class="pick" id="send-pick" hidden>
             <p class="file-line"><span id="send-file-name"></span><span class="mono" id="send-file-len"></span></p>
@@ -680,7 +679,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
 } }
 </script>
-<script type="module" src="js/app.js?v=20261105b"></script>   <!-- bump v with every change to js/ (browsers cache 10 min) -->
+<script type="module" src="js/app.js?v=20261105c"></script>   <!-- bump v with every change to js/ (browsers cache 10 min) -->
 
 </body>
 </html>

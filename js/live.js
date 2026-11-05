@@ -11,7 +11,8 @@
 // computer's microphone streams what it hears (browser echo cancelling, noise suppression and gain control off; the
 // microphone is never played back here). The server runs the real robot's microphone chain on it, which spends the
 // first 4.7 s learning the room. Nothing is kept unless the visitor ticks the box.
-import { CLIENT, store } from './requests.js?v=20261105b';   // same URL as app.js: one module
+import { CLIENT, store } from './requests.js?v=20261105c';   // same URL as app.js: one module
+import { drawStrip, streamAnalysis } from './strip.js?v=20261105c';
 
 export const LIVE = 'wss://pengtianhu--aheadance-live-web.us-east.modal.run/ws';
 const SR = 48000, FPS = 30, CH = 36, LEAD = 1.0, MAX_MB = 60;
@@ -232,7 +233,7 @@ export function initLive(api) {
     api.begin(controller);
     const ctx = context();
     Object.assign(S, { state: 'connecting', first: -1, have: 0, music: [], playing: false, pos: 0, late: 0, rx: [],
-      done: null, frames: null, maxQueued: 0, warned: false, zeros: 0, levels: [], speed: null });
+      done: null, frames: null, maxQueued: 0, warned: false, zeros: 0, levels: [], speed: null, vz: null });
     el.liveStats.textContent = '';
     buttons();
     status('Connecting to the live server…');
@@ -243,10 +244,6 @@ export function initLive(api) {
         S.tap = new AudioWorkletNode(ctx, 'aheadance-tap', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2] });
         S.out = ctx.createGain();
         S.tap.connect(S.out);
-        S.an = ctx.createAnalyser();                 // the stage strip's spectrum: the same samples the model gets
-        S.an.fftSize = 4096;
-        S.an.smoothingTimeConstant = 0.7;
-        S.tap.connect(S.an);
         S.out.connect(ctx.destination);
       }
     } catch (e) {
@@ -276,7 +273,7 @@ export function initLive(api) {
       S.level = 10 * Math.log10(p / Math.max(1, a.length / 2) / 1073741824 + 1e-12);   // dBFS of this 0.1 s
       // a microphone that delivers exact zeros is blocked or the wrong device (seen 11-04: the OS had not allowed it)
       S.zeros = p === 0 ? S.zeros + 1 : 0;
-      if (S.state === 'live' && S.first >= 0) S.levels.push(S.level);
+      if (S.state === 'live' && S.first >= 0) { S.levels.push(S.level); if (S.vz) S.vz.push(a); }   // the strip under the stage
       if (isMic() && S.state === 'live' && S.zeros === 15) {
         status('Your microphone is sending pure silence. Check that your computer lets the browser use the microphone '
           + '(macOS: System Settings › Privacy & Security › Microphone; Windows: Settings › Privacy › Microphone) and that '
@@ -301,7 +298,7 @@ export function initLive(api) {
         status(`Starting the cloud GPU… ${m.seconds} s (the first visitor in a while waits about a minute)`);
       } else if (m.type === 'ready') {
         Object.assign(S, { state: 'live', max: m.seconds, delay: m.delay, frames: new Float32Array(m.seconds * FPS * CH + 16 * CH),
-          speed: new Float32Array(m.seconds * FPS + 16) });
+          speed: new Float32Array(m.seconds * FPS + 16), vz: streamAnalysis(m.seconds, S.ctx ? S.ctx.sampleRate : SR) });
         S.tap.port.postMessage('start');
         el.liveVizWrap.hidden = false;
         if (isMic()) {
@@ -369,88 +366,12 @@ export function initLive(api) {
     api.end();
   }
 
-  // ---- the strip at the bottom of the stage (as in our video): the last 12 s of what the model hears with the
-  // robot's joint speed 1.24 s later, and the spectrum of the sound right now (60 Hz - 8 kHz)
-  let spec = null, vizAt = 0, colors = null, colorsAt = 0;
+  // ---- the strip under the stage (js/strip.js): rhythm, spectrogram and volume of what the model gets, and the robot
   function viz(t) {
-    const cv = el.liveViz;
-    if (el.liveVizWrap.hidden || !cv.clientWidth) return;
-    const ms = performance.now();
-    if (ms - vizAt < 33) return;                     // at most 30 redraws a second: keep the page free to stream audio
-    vizAt = ms;
-    if (!colors || ms - colorsAt > 2000) {           // theme colours, read rarely (a style read each frame costs time)
-      const cs = getComputedStyle(document.documentElement), c = (n, d) => cs.getPropertyValue(n).trim() || d;
-      colors = { blue: c('--song-1', '#0071e3'), orange: c('--robot-fill', '#ff9f0a'), ink2: c('--ink2', '#6e6e73'), hair: c('--hair', '#d2d2d7') };
-      colorsAt = ms;
-    }
-    const dpr = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth, h = cv.clientHeight;
-    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
-    const g = cv.getContext('2d');
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.clearRect(0, 0, w, h);
-    const { blue, orange, ink2, hair } = colors;
-    const small = h < 90, font = `${small ? 10 : 11}px -apple-system, system-ui, sans-serif`;
-    g.font = font;
-    g.textBaseline = 'top';
-    const split = Math.round(w * (w < 500 ? 0.62 : 0.7)), pad = 10, top = small ? 18 : 22, bot = h - 8, mid = top + (bot - top) * 0.55;
-    // left: scrolling music level and robot speed
-    const W = 12, x = (sec) => pad + ((sec - (t - W)) / W) * (split - 2 * pad);
-    g.fillStyle = ink2;
-    g.fillText('What the model hears', pad, 6);
-    g.textAlign = 'right';
-    g.fillStyle = orange;
-    g.fillText('Robot', split - pad, 6);
-    g.textAlign = 'left';
-    const lv = S.levels, i0 = Math.max(0, Math.floor((t - W) / 0.1));
-    g.fillStyle = blue;
-    for (let i = i0; i < lv.length; i++) {
-      const a = Math.max(0, Math.min(1, (lv[i] + 60) / 54)), hh = a * (mid - top - 2);
-      const xx = x(i * 0.1);
-      g.fillRect(xx, (top + mid) / 2 - hh / 2, Math.max(1, x((i + 1) * 0.1) - xx - 1), Math.max(1, hh));
-    }
-    const n = Math.min(S.have, Math.floor((t - S.delay) * FPS) + 1);
-    if (S.speed && n > 1) {
-      g.strokeStyle = orange;
-      g.lineWidth = 1.6;
-      g.beginPath();
-      let started = false;
-      for (let k = Math.max(1, Math.floor((t - W - S.delay) * FPS)); k < n; k += 2) {
-        let sum = 0, c = 0;
-        for (let j = Math.max(1, k - 7); j <= Math.min(n - 1, k + 7); j++) { sum += S.speed[j]; c++; }
-        const y = bot - Math.min(1, sum / c / 1.6) * (bot - mid - 2);
-        if (started) g.lineTo(x(k / FPS + S.delay), y); else { g.moveTo(x(k / FPS + S.delay), y); started = true; }
-      }
-      g.stroke();
-    }
-    g.strokeStyle = hair;
-    g.lineWidth = 1;
-    g.beginPath();
-    g.moveTo(x(t) + 0.5, top);
-    g.lineTo(x(t) + 0.5, bot);
-    g.moveTo(split + 0.5, 6);
-    g.lineTo(split + 0.5, h - 6);
-    g.stroke();
-    // right: spectrum of the sound right now, 24 bands, 60 Hz - 8 kHz on a log scale
-    g.fillStyle = ink2;
-    g.fillText('Spectrum', split + pad, 6);
-    if (S.an) {
-      if (!spec || spec.length !== S.an.frequencyBinCount) spec = new Uint8Array(S.an.frequencyBinCount);
-      S.an.getByteFrequencyData(spec);
-      const nyq = S.ctx.sampleRate / 2, B = 24, x0 = split + pad, bw = (w - pad - x0) / B;
-      g.fillStyle = blue;
-      for (let b = 0; b < B; b++) {
-        const f0 = 60 * Math.pow(8000 / 60, b / B), f1 = 60 * Math.pow(8000 / 60, (b + 1) / B);
-        const k0 = Math.floor((f0 / nyq) * spec.length), k1 = Math.max(k0 + 1, Math.ceil((f1 / nyq) * spec.length));
-        let m = 0;
-        for (let k = k0; k < k1 && k < spec.length; k++) m = Math.max(m, spec[k]);
-        const hh = (m / 255) * (bot - top);
-        g.fillRect(x0 + b * bw + 1, bot - hh, Math.max(1, bw - 2), hh);
-      }
-      g.fillStyle = ink2;
-      g.font = `${small ? 9 : 10}px -apple-system, system-ui, sans-serif`;
-      g.textBaseline = 'bottom';
-      if (!small) { g.fillText('60 Hz', x0, h - 1); g.textAlign = 'right'; g.fillText('8 kHz', w - pad, h - 1); g.textAlign = 'left'; }
-    }
+    if (el.liveVizWrap.hidden) return;
+    drawStrip(el.liveViz, { t, levels: S.levels, nLevels: S.levels.length, spec: S.vz ? S.vz.spec : null, hits: S.vz ? S.vz.hits : [],
+      speed: S.speed, n: Math.min(S.have, Math.floor((t - S.delay) * FPS) + 1), delay: S.delay, fps: FPS, smooth: 7,
+      playing: S.state === 'live' });
   }
 
   // ---- what the stage shows

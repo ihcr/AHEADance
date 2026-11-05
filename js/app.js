@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { forwardKinematics } from './fk.js?v=20261105b';
+import { forwardKinematics } from './fk.js?v=20261105c';
+import { drawStrip, analyseMusic } from './strip.js?v=20261105c';
 
 // Offline version: replays of dances the deployed model generated. Each programme = one audio file (exactly what the
 // model heard) + its generated motion. The robot is shown 1.24 s behind the music, as on the real robot.
@@ -171,6 +172,18 @@ function follow(alpha) {
 let manifest = null;
 const motionCache = new Map();
 
+// the strip under the stage (js/strip.js): each replay's audio file is analysed once, when the dance loads
+const musicCache = new Map();
+function loadMusic(p) {
+  if (!musicCache.has(p.id)) {
+    const entry = { ready: null };
+    musicCache.set(p.id, entry);
+    getBuffer(p.audio).then((b) => analyseMusic(b)).then((r) => { entry.ready = r; })
+      .catch((e) => console.warn(`music analysis of ${p.id}: ${e.message || e}`));
+  }
+  return musicCache.get(p.id);
+}
+
 function computeActivity(fr, n, ch, fps) {
   const a = new Float64Array(n);
   for (let i = 1; i < n; i++) {
@@ -334,6 +347,8 @@ function select(p, autoplay) {           // everything before the first await ru
   Object.assign(P, { prog: p, motion: null, t: 0, ended: false, clock: 'media' });
   if (P.route === 'element') setSrc(p.audio);
   programmeChanged();
+  loadMusic(p);
+  $('live-viz-wrap').hidden = false;
   if (autoplay) play(0);
   return loadMotion(p).then((motion) => {
     if (P.prog !== p) return;
@@ -443,6 +458,15 @@ function liveEnd() {
   if (P.motion) { drawDetails(); poseAt(now()); follow(1); }
   $('axis').dataset.span = '';
   $('stage-hint').hidden = false;
+  $('live-viz-wrap').hidden = !P.prog;
+}
+function replayStrip(t) {
+  if ($('live-viz-wrap').hidden) return;
+  const p = P.prog, a = loadMusic(p).ready, m = P.motion, fps = p.motion.fps, delay = p.display_delay_s;
+  drawStrip($('live-viz'), { t, levels: a && a.levels, nLevels: a ? Math.floor(Math.min(t, p.duration) / 0.1) : 0,
+    spec: a && a.spec, hits: a ? a.hits : [], speed: m && m.activity,
+    n: m ? Math.min(m.activity.length, Math.floor((t - delay) * fps) + 1) : 0, delay, fps, smooth: 0,
+    playing: P.running && t < p.duration, key: `${p.id}|${t.toFixed(3)}|${!!a}|${!!m}|${P.running}` });
 }
 function liveUI(t) {
   const playing = L.playing(), robot = L.robot(t), hint = L.hint(t);
@@ -825,6 +849,7 @@ function loop() {
       follow(reduceMotion ? 1 : 0.06);
     }
     updateUI(t);
+    replayStrip(t);
   }
   controls.update();
   if (needsRender) {
@@ -874,7 +899,7 @@ async function start() {
     P.running ? pause() : play();
   });
   showSoundStatus();
-  import('./requests.js?v=20261105b').then((m) => {
+  import('./requests.js?v=20261105c').then((m) => {
     stopOthers = m.initRequests({
       add(prog, s) {
         manifest.songs[s.id] = s;
@@ -901,7 +926,7 @@ async function start() {
   $('go-live-btn').addEventListener('click', (e) => { e.preventDefault(); openLive(); });
   if (location.hash === '#live') openLive();
   let liveCtl = null;
-  import('./live.js?v=20261105b').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd }); }).catch(fail);
+  import('./live.js?v=20261105c').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd }); }).catch(fail);
   $('over').addEventListener('click', () => { pause(); seek(0); });
   // hook for automated checks (tools/page_check.mjs)
   window.aheadance = { seek, play: () => play(), pause, now, rootWorld, ready: true, live: () => liveCtl,

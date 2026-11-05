@@ -11,8 +11,9 @@ The site is static, so GitHub Pages serves it as is. `index.html` is the page.
 | `index.html` | The page |
 | `js/app.js` | Web demo: 3D robot, player, set list, timeline |
 | `js/fk.js` | G1 forward kinematics (matches MuJoCo to about 1 µm) |
-| `js/requests.js` | "Your song": send 20 s of music with an access code |
+| `js/requests.js` | "Your song": send 30 s of music with an access code |
 | `js/live.js` | "Live": the model dances to a music file as it plays |
+| `js/strip.js` | The strip under the stage: rhythm, spectrogram, volume and spectrum of the music, and the robot's joint speed (replays and Live) |
 | `assets/` | G1 model from the Unitree MJCF (BSD-3-Clause): `g1.json` (tree) and `g1_meshes.bin` (int16 meshes) |
 | `clips/manifest.json`, `clips/*.bin` | One entry per dance in the web demo: segments, plus 30 fps motion (root position, root quaternion, 29 joint angles) as int16 with per-channel scales |
 | `audio/*.mp3` | The audio each dance was generated from (96 kb/s) |
