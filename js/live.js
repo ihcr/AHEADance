@@ -17,8 +17,8 @@
 // (frame numbers from ready.sonic.base up). That pose comes later than the generated chunks, so the SONIC view is
 // shown ready.sonic.delay s behind the music. If the simulated robot falls or SONIC stops, the page says so and
 // switches to the generated motion; the visitor can switch back.
-import { CLIENT, store } from './requests.js?v=20261105i';   // same URL as app.js: one module
-import { drawStrip, streamAnalysis } from './strip.js?v=20261105i';
+import { CLIENT, store } from './requests.js?v=20261105j';   // same URL as app.js: one module
+import { drawStrip, streamAnalysis } from './strip.js?v=20261105j';
 
 export const LIVE = 'wss://pengtianhu--aheadance-live-web.us-east.modal.run/ws';
 const SR = 48000, FPS = 30, CH = 36, LEAD = 1.0, MAX_MB = 60;
@@ -340,10 +340,10 @@ export function initLive(api) {
         if (S.simState !== 'on') return;
         S.simState = m.event;
         S.simNote = (m.event === 'fell'
-          ? `The simulated robot fell at ${mmss(m.at)}: SONIC could not keep its balance in this motion.`
-          : m.why === 'low' ? `SONIC stopped at ${mmss(m.at)}: the motion squatted below the simulator's 0.45 m safety height.`
-            : m.why === 'late' ? `SONIC stopped at ${mmss(m.at)}: the motion reached it too late (a slow connection can cause this).`
-              : `SONIC stopped at ${mmss(m.at)}.`) + ' Now showing the generated motion; switch back to SONIC tracker to see where it stopped.';
+          ? `The tracker fell at ${mmss(m.at)}: it could not keep its balance in this motion.`
+          : m.why === 'low' ? `The tracker stopped at ${mmss(m.at)}: the motion squatted below the simulator's 0.45 m safety height.`
+            : m.why === 'late' ? `The tracker stopped at ${mmss(m.at)}: the motion reached it too late (a slow connection can cause this).`
+              : `The tracker stopped at ${mmss(m.at)}.`) + ' Now showing the generated motion; switch back to Tracker to see where it stopped.';
         S.simSwitchAt = m.at + S.sonic.delay + 1.0;   // once the SONIC view has shown the moment (1 s after it)
       } else if (m.type === 'done') {
         if (m.error) el.liveStats.textContent = m.error;
@@ -390,8 +390,8 @@ export function initLive(api) {
         const ss = [...S.simRx].sort((a, b) => a - b), sm = ss[ss.length >> 1];
         if (ss.length) {
           el.liveStats.textContent = sm > S.sonic.delay
-            ? `SONIC's pose is arriving ${sm.toFixed(1)} s after the music, later than the ${S.sonic.delay.toFixed(2)} s it is shown at, so the robot may stall. A slow connection can cause this.`
-            : `SONIC tracker: pose arrives ${sm.toFixed(2)} s after the music (shown at ${S.sonic.delay.toFixed(2)} s) · generated motion ${med2(S.rx)} s`
+            ? `The tracker's pose is arriving ${sm.toFixed(1)} s after the music, later than the ${S.sonic.delay.toFixed(2)} s it is shown at, so the robot may stall. A slow connection can cause this.`
+            : `Tracker: pose arrives ${sm.toFixed(2)} s after the music (shown at ${S.sonic.delay.toFixed(2)} s) · generated motion ${med2(S.rx)} s`
               + (isMic() ? ` · microphone ${S.level.toFixed(0)} dB` : '');
         }
         return;

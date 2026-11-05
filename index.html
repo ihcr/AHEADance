@@ -384,7 +384,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
     <ol class="steps">
       <li class="step"><span class="k">1 · Listen</span><h3>Only what it has heard.</h3><p>Music features are computed from audio the system has already received. Nothing from later in the song is used.</p></li>
       <li class="step"><span class="k">2 · Generate</span><h3>30 frames a second.</h3><p>A frozen dance generator turns those features into motion for the 29 joints of a Unitree G1, starting from standing.</p></li>
-      <li class="step"><span class="k">3 · Move</span><h3>Tracked on the robot.</h3><p>SONIC, the whole-body motion tracker our robot runs, executes the generated motion on the Unitree G1. The web demo replays each dance in time with its music, as the robot danced it.</p></li>
+      <li class="step"><span class="k">3 · Move</span><h3>Tracked on the robot.</h3><p>The whole-body motion tracker our robot runs executes the generated motion on the Unitree G1. The web demo replays each dance in time with its music, as the robot danced it.</p></li>
     </ol>
   </section>
 
@@ -518,7 +518,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
           </div>
           <p class="stage-hint" id="stage-hint">Drag to turn</p>
           <div class="view-switch" id="view-switch" role="group" aria-label="What the robot shows" hidden>
-            <button type="button" data-view="sim" aria-pressed="true" title="The generated motion tracked by SONIC, the whole-body motion tracker our robot runs (in MuJoCo physics)">SONIC tracker</button>
+            <button type="button" data-view="sim" aria-pressed="true" title="The generated motion followed by the whole-body motion tracker our robot runs (in MuJoCo physics)">Tracker</button>
             <button type="button" data-view="gen" aria-pressed="false" title="The motion the model generated, shown as it is, without physics">Generated motion</button>
           </div>
         </div>
@@ -546,7 +546,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
             <p>Send us up to 30 s of music and we add the robot's dance to this list. <a href="#yours">How it works</a></p>
           </div>
           <div class="live" id="live" hidden>
-            <p class="live-note">Play a music file here. Our model on a cloud GPU listens as it plays, and the robot dances to it, as on the real robot. Pause the music and the robot settles; play it again and the robot dances again. It learned from music only: talking or noise makes it move gently, and silence makes it stand. The robot you see is SONIC, the motion tracker our robot runs, following the model's motion in a simulator next to it. It is shown a little after the generated motion; switch to Generated motion to see that sooner.</p>
+            <p class="live-note">Play a music file here. Our model on a cloud GPU listens as it plays, and the robot dances to it, as on the real robot. Pause the music and the robot settles; play it again and the robot dances again. It learned from music only: talking or noise makes it move gently, and silence makes it stand. The robot you see is the motion tracker our robot runs, following the model's motion in a simulator next to it. It is shown a little after the generated motion; switch to Generated motion to see that sooner.</p>
             <p class="live-signin" id="live-signin" hidden>To go live, <a href="#yours">sign in with your email</a> under Your song: 2 sessions a day, up to 1 minute each.</p>
             <p class="live-who" id="live-who" hidden><span id="live-who-text"></span> · <button type="button" class="link" id="live-forget">Sign out</button></p>
             <div class="live-source" role="group" aria-label="Where the music comes from">
@@ -601,7 +601,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
     </div>
     <ul class="facts">
       <li><strong>One run, exactly this audio.</strong>Every dance in the web demo is one run of the deployed model on the audio you hear: seed 1234, except the three Same song takes (seeds 1234, 1235, 1236) and Live (a new seed each session). Nothing is cut together from other runs.</li>
-      <li><strong>SONIC tracker or generated motion.</strong>By default a replay shows the generated motion tracked by SONIC, the whole-body motion tracker our robot runs, in MuJoCo physics, so the robot's own collisions and balance apply. <em>Generated motion</em> shows what the model output, as it is. Neither is the joint angles measured on the real robot. Live shows SONIC too. If SONIC falls or stops, the page says so and shows the generated motion. The songs you send show the generated motion.</li>
+      <li><strong>Tracker or generated motion.</strong>By default a replay shows the generated motion followed by the whole-body motion tracker our robot runs, in MuJoCo physics, so the robot's own collisions and balance apply. <em>Generated motion</em> shows what the model output, as it is. Neither is the joint angles measured on the real robot. Live shows the tracker too. If the tracker falls or stops, the page says so and shows the generated motion. The songs you send show the generated motion.</li>
       <li><strong>Robot status.</strong>The label on the stage comes from the joint speed of that motion: below 0.12 rad/s is standing, above 0.25 rad/s is dancing.</li>
       <li><strong>Styles are only labels.</strong>Style names are the FineDance music labels. The model only hears the music.</li>
     </ul>
@@ -682,7 +682,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
 } }
 </script>
-<script type="module" src="js/app.js?v=20261105i"></script>   <!-- bump v with every change to js/ (browsers cache 10 min) -->
+<script type="module" src="js/app.js?v=20261105j"></script>   <!-- bump v with every change to js/ (browsers cache 10 min) -->
 
 </body>
 </html>
