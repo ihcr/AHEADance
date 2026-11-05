@@ -11,8 +11,14 @@
 // computer's microphone streams what it hears (browser echo cancelling, noise suppression and gain control off; the
 // microphone is never played back here). The server runs the real robot's microphone chain on it, which spends the
 // first 4.7 s learning the room. Nothing is kept unless the visitor ticks the box.
-import { CLIENT, store } from './requests.js?v=20261105d';   // same URL as app.js: one module
-import { drawStrip, streamAnalysis } from './strip.js?v=20261105d';
+//
+// SONIC (user 11-05): the server also runs SONIC, the whole-body motion tracker of our robot, in the MuJoCo simulator,
+// on the generated motion as it arrives (the real robot's 1.24 s delivery), and streams back the pose SONIC achieves
+// (frame numbers from ready.sonic.base up). That pose comes later than the generated chunks, so the SONIC view is
+// shown ready.sonic.delay s behind the music. If the simulated robot falls or SONIC stops, the page says so and
+// switches to the generated motion; the visitor can switch back.
+import { CLIENT, store } from './requests.js?v=20261105e';   // same URL as app.js: one module
+import { drawStrip, streamAnalysis } from './strip.js?v=20261105e';
 
 export const LIVE = 'wss://pengtianhu--aheadance-live-web.us-east.modal.run/ws';
 const SR = 48000, FPS = 30, CH = 36, LEAD = 1.0, MAX_MB = 60;
@@ -57,7 +63,12 @@ export function initLive(api) {
   const S = { code: store.get(), buffer: null, name: '', ctx: null, tap: null, src: null, ws: null, state: 'idle',
     first: -1, max: 180, delay: 1.24, frames: null, have: 0, music: [], playing: false, pos: 0, startedAt: 0,
     late: 0, rx: [], done: null, source: 'file', mic: null, micNode: null, out: null, level: -120, room: 0, zeros: 0,
-    levels: [], speed: null };       // for the timeline: dBFS per streamed 0.1 s, joint speed per received frame
+    levels: [], speed: null,         // for the timeline: dBFS per streamed 0.1 s, joint speed per received frame
+    sonic: null, sim: null, simHave: 0, simSpeed: null, simRx: [], simLate: 0, simState: '', view: 'sim' };
+  const sim = () => S.view === 'sim' && !!S.sonic;     // the SONIC view is on
+  // the frames the stage shows: the generated motion, or SONIC's
+  const src = () => (sim() ? { frames: S.sim, have: S.simHave, speed: S.simSpeed, delay: S.sonic.delay }
+    : { frames: S.frames, have: S.have, speed: S.speed, delay: S.delay });
   const isMic = () => S.source === 'microphone';
 
   // ---- signed in? (the same sign-in as Your song: an email token or an access code)
@@ -233,7 +244,8 @@ export function initLive(api) {
     api.begin(controller);
     const ctx = context();
     Object.assign(S, { state: 'connecting', first: -1, have: 0, music: [], playing: false, pos: 0, late: 0, rx: [],
-      done: null, frames: null, maxQueued: 0, warned: false, zeros: 0, levels: [], speed: null, vz: null });
+      done: null, frames: null, maxQueued: 0, warned: false, zeros: 0, levels: [], speed: null, vz: null,
+      sonic: null, sim: null, simHave: 0, simSpeed: null, simRx: [], simLate: 0, simState: '', simNote: '', simSwitchAt: 0 });
     el.liveStats.textContent = '';
     buttons();
     status('Connecting to the live server…');
@@ -299,6 +311,9 @@ export function initLive(api) {
       } else if (m.type === 'ready') {
         Object.assign(S, { state: 'live', max: m.seconds, delay: m.delay, frames: new Float32Array(m.seconds * FPS * CH + 16 * CH),
           speed: new Float32Array(m.seconds * FPS + 16), vz: streamAnalysis(m.seconds, S.ctx ? S.ctx.sampleRate : SR) });
+        if (m.sonic) Object.assign(S, { sonic: m.sonic, sim: new Float32Array(m.seconds * FPS * CH + 64 * CH),
+          simSpeed: new Float32Array(m.seconds * FPS + 64), simState: 'on' });
+        api.views();
         S.tap.port.postMessage('start');
         el.liveVizWrap.hidden = false;
         if (isMic()) {
@@ -308,6 +323,15 @@ export function initLive(api) {
           status('Live. The robot starts standing; the music starts in a moment.');
           setTimeout(() => { if (S.state === 'live' && S.ws === ws) musicOn(); }, LEAD * 1000);
         }
+      } else if (m.type === 'sonic') {    // the simulated robot fell, or SONIC stopped
+        if (S.simState !== 'on') return;
+        S.simState = m.event;
+        S.simNote = (m.event === 'fell'
+          ? `The simulated robot fell at ${mmss(m.at)}: SONIC could not keep its balance in this motion.`
+          : m.why === 'low' ? `SONIC stopped at ${mmss(m.at)}: the motion squatted below the simulator's 0.45 m safety height.`
+            : m.why === 'late' ? `SONIC stopped at ${mmss(m.at)}: the motion reached it too late (a slow connection can cause this).`
+              : `SONIC stopped at ${mmss(m.at)}.`) + ' Now showing the generated motion; switch back to SONIC tracker to see where it stopped.';
+        S.simSwitchAt = m.at + S.sonic.delay + 1.0;   // once the SONIC view has shown the moment (1 s after it)
       } else if (m.type === 'done') {
         if (m.error) el.liveStats.textContent = m.error;
         finish(m.reason === 'the music stopped arriving'
@@ -321,9 +345,23 @@ export function initLive(api) {
     ws.onerror = () => { if (S.ws === ws && S.state !== 'idle') finish('The live server cannot be reached.'); };
     ws.onclose = () => { if (S.ws === ws && S.state !== 'idle') finish(S.state === 'live' ? null : 'The live server closed the connection.'); };
   }
+  function simChunk(k0, rows) {      // SONIC's pose, 30 fps on the generated motion's clock
+    const n = rows.length / CH;
+    if (!S.sim || (k0 + n) * CH > S.sim.length) return;
+    S.sim.set(rows, k0 * CH);
+    for (let k = Math.max(1, k0); k < k0 + n; k++) {
+      let sp = 0;
+      for (let j = 7; j < CH; j++) sp += Math.abs(S.sim[k * CH + j] - S.sim[(k - 1) * CH + j]);
+      S.simSpeed[k] = (sp / (CH - 7)) * FPS;
+    }
+    S.simHave = Math.max(S.simHave, k0 + n);
+    S.simRx.push(streamTime() - (k0 + n - 1) / FPS);
+    if (S.simRx.length > 40) S.simRx.shift();
+  }
   function chunk(buf) {
     const v = new DataView(buf), frame = v.getInt32(0, true), lag = v.getFloat32(4, true);
     const rows = new Float32Array(buf, 12);
+    if (S.sonic && frame >= S.sonic.base) return simChunk(frame - S.sonic.base, rows);
     if (!S.frames || frame * CH + rows.length > S.frames.length) return;
     S.frames.set(rows, frame * CH);
     for (let k = Math.max(1, frame); k < frame + 16; k++) {      // mean joint speed per frame (rad/s), as in app.js
@@ -334,7 +372,17 @@ export function initLive(api) {
     S.have = Math.max(S.have, frame + 16);
     S.rx.push(streamTime() - frame / FPS);
     if (S.rx.length > 40) S.rx.shift();
-    if (S.rx.length % 4 === 0) {
+    if (S.rx.length % 4 === 0 && !(S.simNote && !S.simSwitchAt)) {
+      if (sim()) {
+        const ss = [...S.simRx].sort((a, b) => a - b), sm = ss[ss.length >> 1];
+        if (ss.length) {
+          el.liveStats.textContent = sm > S.sonic.delay
+            ? `SONIC's pose is arriving ${sm.toFixed(1)} s after the music, later than the ${S.sonic.delay.toFixed(2)} s it is shown at, so the robot may stall. A slow connection can cause this.`
+            : `SONIC tracker: pose arrives ${sm.toFixed(2)} s after the music (shown at ${S.sonic.delay.toFixed(2)} s) · generated motion ${med2(S.rx)} s`
+              + (isMic() ? ` · microphone ${S.level.toFixed(0)} dB` : '');
+        }
+        return;
+      }
       const sorted = [...S.rx].sort((a, b) => a - b), med = sorted[sorted.length >> 1];
       el.liveStats.textContent = med > S.delay
         ? `The motion is arriving ${med.toFixed(1)} s after the music, later than the ${S.delay.toFixed(2)} s it is shown at, so the robot may stall. A slow connection or a busy device can cause this.`
@@ -342,6 +390,7 @@ export function initLive(api) {
           + (isMic() ? ` · microphone ${S.level.toFixed(0)} dB` : '');
     }
   }
+  function med2(x) { const s = [...x].sort((a, b) => a - b); return s.length ? s[s.length >> 1].toFixed(2) : '–'; }
   function finish(message, reason) {
     const was = S.state;
     if (S.playing) musicOff();
@@ -354,7 +403,10 @@ export function initLive(api) {
     S.ws = null;
     if (ws && ws.readyState <= 1) {
       const sorted = [...S.rx].sort((a, b) => a - b);
+      const ss = [...S.simRx].sort((a, b) => a - b);
       const page = { max_queued_bytes: S.maxQueued, late_frames: S.late, arrival_median_s: sorted.length ? +sorted[sorted.length >> 1].toFixed(3) : null,
+        sonic_late_frames: S.simLate, sonic_arrival_median_s: ss.length ? +ss[ss.length >> 1].toFixed(3) : null,
+        sonic_arrival_max_s: ss.length ? +ss[ss.length - 1].toFixed(3) : null, view: S.view,
         sample_rate: S.ctx ? S.ctx.sampleRate : null, output_latency_s: S.ctx ? S.ctx.outputLatency ?? null : null, agent: navigator.userAgent.slice(0, 160) };
       try { ws.send(JSON.stringify({ type: 'end', page })); } catch { /* closing */ }
       ws.close();
@@ -369,42 +421,56 @@ export function initLive(api) {
   // ---- the strip under the stage (js/strip.js): rhythm, spectrogram and volume of what the model gets, and the robot
   function viz(t) {
     if (el.liveVizWrap.hidden) return;
+    const s = src();
     drawStrip(el.liveViz, { t, levels: S.levels, nLevels: S.levels.length, spec: S.vz ? S.vz.spec : null, hits: S.vz ? S.vz.hits : [],
-      speed: S.speed, n: Math.min(S.have, Math.floor((t - S.delay) * FPS) + 1), delay: S.delay, fps: FPS, smooth: 7,
+      speed: s.speed, n: Math.min(s.have, Math.floor((t - s.delay) * FPS) + 1), delay: s.delay, fps: FPS, smooth: 7,
       playing: S.state === 'live' });
   }
 
   // ---- what the stage shows
   const q = new Float64Array(CH);
   function frameAt(f) {
-    if (!S.frames || S.have === 0) return null;
-    const last = S.have - 1;
-    if (f > last) { S.late++; f = last; }
+    const { frames, have } = src();
+    if (!frames || have === 0) return null;
+    const last = have - 1;
+    if (f > last) { if (sim()) S.simLate++; else S.late++; f = last; }
     const i0 = Math.max(0, Math.floor(f)), i1 = Math.min(i0 + 1, last), a = Math.max(0, Math.min(1, f - i0));
     let dot = 0;
-    for (let j = 3; j < 7; j++) dot += S.frames[i0 * CH + j] * S.frames[i1 * CH + j];
+    for (let j = 3; j < 7; j++) dot += frames[i0 * CH + j] * frames[i1 * CH + j];
     const sign = dot < 0 ? -1 : 1;
-    for (let j = 0; j < CH; j++) q[j] = S.frames[i0 * CH + j] * (1 - a) + S.frames[i1 * CH + j] * (j >= 3 && j < 7 ? sign : 1) * a;
+    for (let j = 0; j < CH; j++) q[j] = frames[i0 * CH + j] * (1 - a) + frames[i1 * CH + j] * (j >= 3 && j < 7 ? sign : 1) * a;
     return q;
   }
   function activity(i) {              // mean joint speed around frame i (rad/s), as computeActivity in app.js
-    const h = Math.round(FPS * 0.25), lo = Math.max(1, i - h), hi = Math.min(S.have - 1, i + h);
+    const { frames, have } = src();
+    const h = Math.round(FPS * 0.25), lo = Math.max(1, i - h), hi = Math.min(have - 1, i + h);
     if (hi < lo) return 0;
     let s = 0;
-    for (let k = lo; k <= hi; k++) for (let j = 7; j < CH; j++) s += Math.abs(S.frames[k * CH + j] - S.frames[(k - 1) * CH + j]);
+    for (let k = lo; k <= hi; k++) for (let j = 7; j < CH; j++) s += Math.abs(frames[k * CH + j] - frames[(k - 1) * CH + j]);
     return (s / (CH - 7) / (hi - lo + 1)) * FPS;
   }
   function robot(t) {
-    const f = Math.round((t - S.delay) * FPS);
-    if (!S.frames || f < 1 || S.have < 2) return 'standing';
-    const a = activity(Math.min(f, S.have - 1)), b = activity(Math.max(1, Math.min(f, S.have - 1) - FPS / 2));
+    const { frames, have, delay } = src();
+    const f = Math.round((t - delay) * FPS);
+    if (!frames || f < 1 || have < 2) return 'standing';
+    const a = activity(Math.min(f, have - 1)), b = activity(Math.max(1, Math.min(f, have - 1) - FPS / 2));
     return a < STAND ? 'standing' : a > DANCE ? 'dancing' : a < b ? 'settling down' : 'starting to dance';
   }
   const controller = {
     get title() { return isMic() ? 'Live · microphone' : `Live · ${S.name}`; },
     get max() { return S.max; },
     now: streamTime,
-    pose: (t) => frameAt((t - S.delay) * FPS),
+    pose: (t) => {
+      if (S.simSwitchAt && t >= S.simSwitchAt) {     // SONIC stopped or fell: say so, show the generated motion
+        S.simSwitchAt = 0;
+        el.liveStats.textContent = S.simNote;
+        if (S.view === 'sim') { S.view = 'gen'; api.views(); }
+      }
+      return frameAt((t - src().delay) * FPS);
+    },
+    hasSim: () => !!S.sonic,
+    get view() { return S.view; },
+    setView(v) { S.view = v; },
     music: () => (isMic() ? `Microphone: ${S.level > -50 ? 'hearing sound' : 'quiet'}` : S.playing ? `Music: ${S.name}` : 'Music: off'),
     playing: () => (isMic() ? S.state === 'live' && S.level > -50 : S.playing),
     mainLabel: () => (isMic() ? 'End live' : S.playing ? 'Pause the music' : 'Play the music'),
@@ -442,14 +508,16 @@ export function initLive(api) {
     viz,
     // the timeline under "Music in. Motion out."
     levels: () => S.levels,
-    speeds: () => (S.speed ? S.speed.subarray(0, S.have) : new Float32Array(0)),
-    get delay() { return S.delay; },
+    speeds: () => { const s = src(); return s.speed ? s.speed.subarray(0, s.have) : new Float32Array(0); },
+    get delay() { return src().delay; },
     events: () => (isMic() ? [] : S.music.map((m) => [m.at, m.playing ? 'start' : 'stop'])),
     toggle() { if (S.state !== 'live') return; if (isMic()) finish(); else (S.playing ? musicOff() : musicOn()); },
     stop() { if (S.state !== 'idle') finish(); },
     debug: () => ({ state: S.state, source: S.source, level: +S.level.toFixed(1), t: +streamTime().toFixed(2), have: S.have, late: S.late, playing: S.playing,
       queued: S.ws ? S.ws.bufferedAmount : 0, maxQueued: S.maxQueued,
-      music: S.music.map((m) => [m.playing, +m.at.toFixed(2)]), rx: S.rx.slice(-8).map((x) => +x.toFixed(2)) }),
+      music: S.music.map((m) => [m.playing, +m.at.toFixed(2)]), rx: S.rx.slice(-8).map((x) => +x.toFixed(2)),
+      sonic: S.sonic, view: S.view, simHave: S.simHave, simLate: S.simLate, simState: S.simState,
+      simRx: S.simRx.slice(-8).map((x) => +x.toFixed(2)) }),
   };
 
   el.liveGo.addEventListener('click', () => { context(); go(); });

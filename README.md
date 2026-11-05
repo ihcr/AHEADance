@@ -15,7 +15,7 @@ The site is static, so GitHub Pages serves it as is. `index.html` is the page.
 | `js/live.js` | "Live": the model dances to a music file as it plays |
 | `js/strip.js` | The strip under the stage: rhythm, spectrogram, volume and spectrum of the music, and the robot's joint speed (replays and Live) |
 
-Replays have two motions on one clock: `motion` (what the deployed model generated) and `motion_sim` (SONIC, the whole-body controller our robot runs, executing that same generated motion in headless MuJoCo; AudioMimic `project_page/tools/sonic_replays.py` and `sonic_to_page.py`). The page shows `motion_sim` by default (switch label "SONIC tracker") with a switch to the generated motion ("Generated motion"); Live and the songs visitors send show the generated motion.
+Replays have two motions on one clock: `motion` (what the deployed model generated) and `motion_sim` (SONIC, the whole-body controller our robot runs, executing that same generated motion in headless MuJoCo; AudioMimic `project_page/tools/sonic_replays.py` and `sonic_to_page.py`). The page shows `motion_sim` by default (switch label "SONIC tracker") with a switch to the generated motion ("Generated motion"). Live shows SONIC too (see Live); the songs visitors send show the generated motion.
 | `assets/` | G1 model from the Unitree MJCF (BSD-3-Clause): `g1.json` (tree) and `g1_meshes.bin` (int16 meshes) |
 | `clips/manifest.json`, `clips/*.bin` | One entry per dance in the web demo: segments, plus 30 fps motion (root position, root quaternion, 29 joint angles) as int16 with per-channel scales |
 | `audio/*.mp3` | The audio each dance was generated from (96 kb/s) |
@@ -36,6 +36,8 @@ Every dance in the web demo is one run of the deployed model on exactly the audi
 ## Live
 
 The Live tab plays a music file in the browser and streams exactly what it plays to the live server (`LIVE` in `js/live.js`). Paused music streams as silence. The server runs the same feature service and generator as the real robot, one 0.533 s chunk at a time. Each chunk comes back to the page, which shows it 1.24 s behind the music.
+
+SONIC in Live: the same container runs the real robot's simulation terminal (headless MuJoCo and the release SONIC controller, on loopback) and feeds each generated chunk to it through the real robot's delivery chain (50 Hz packets with 1.0 s preview, a 15 ms send deadline and the 0.45 m height watchdog). SONIC's pose comes back at 30 fps, and the page shows it by default, 2.5 s behind the music; the generated motion stays 1.24 s behind. In the cloud SONIC executes each frame 1.6 s after the music, not 1.24 s, because the cloud GPU generates each chunk in about 105 ms (the robot's computer: about 64 ms) and the browser sends audio in 0.1 s blocks. If SONIC falls (torso tilt over 45 deg or base under 0.35 m) or stops (a chunk late, or the watchdog), the page says so and switches to the generated motion. The simulator restarts between sessions, so the next visitor waits about 35 s.
 
 - It needs the same sign-in as Your song.
 - Every session draws a new random seed, so the same music gives a new dance each time.
