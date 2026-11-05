@@ -525,7 +525,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
           </div>
           <p class="stage-hint" id="stage-hint">Drag to turn</p>
           <div class="view-switch" id="view-switch" role="group" aria-label="What the robot shows" hidden>
-            <button type="button" data-view="sim" aria-pressed="true" title="SONIC, the whole-body controller our robot runs, executing the generated motion in the MuJoCo physics simulator">Simulated robot</button>
+            <button type="button" data-view="sim" aria-pressed="true" title="The generated motion tracked by SONIC, the whole-body motion tracker our robot runs (in MuJoCo physics)">SONIC tracker</button>
             <button type="button" data-view="gen" aria-pressed="false" title="The motion the model generated, shown as it is, without physics">Generated motion</button>
           </div>
         </div>
@@ -608,7 +608,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
     </div>
     <ul class="facts">
       <li><strong>One run, exactly this audio.</strong>Every dance in the web demo is one run of the deployed model on the audio you hear: seed 1234, except the three Same song takes (seeds 1234, 1235, 1236) and Live (a new seed each session). Nothing is cut together from other runs.</li>
-      <li><strong>Simulated robot or generated motion.</strong>By default a replay shows SONIC, the whole-body controller our robot runs, executing the generated motion in the MuJoCo physics simulator, so the robot's own collisions and balance apply. <em>Generated motion</em> shows what the model output, as it is. Neither is the joint angles measured on the real robot; Live and the songs you send show the generated motion.</li>
+      <li><strong>SONIC tracker or generated motion.</strong>By default a replay shows the generated motion tracked by SONIC, the whole-body motion tracker our robot runs, in MuJoCo physics, so the robot's own collisions and balance apply. <em>Generated motion</em> shows what the model output, as it is. Neither is the joint angles measured on the real robot; Live and the songs you send show the generated motion.</li>
       <li><strong>Robot status.</strong>The label on the stage comes from the joint speed of that motion: below 0.12 rad/s is standing, above 0.25 rad/s is dancing.</li>
       <li><strong>Styles are only labels.</strong>Style names are the FineDance music labels. The model only hears the music.</li>
     </ul>

@@ -15,7 +15,7 @@ The site is static, so GitHub Pages serves it as is. `index.html` is the page.
 | `js/live.js` | "Live": the model dances to a music file as it plays |
 | `js/strip.js` | The strip under the stage: rhythm, spectrogram, volume and spectrum of the music, and the robot's joint speed (replays and Live) |
 
-Replays have two motions on one clock: `motion` (what the deployed model generated) and `motion_sim` (SONIC, the whole-body controller our robot runs, executing that same generated motion in headless MuJoCo; AudioMimic `project_page/tools/sonic_replays.py` and `sonic_to_page.py`). The page shows `motion_sim` by default with a switch to the generated motion; Live and the songs visitors send show the generated motion.
+Replays have two motions on one clock: `motion` (what the deployed model generated) and `motion_sim` (SONIC, the whole-body controller our robot runs, executing that same generated motion in headless MuJoCo; AudioMimic `project_page/tools/sonic_replays.py` and `sonic_to_page.py`). The page shows `motion_sim` by default (switch label "SONIC tracker") with a switch to the generated motion ("Generated motion"); Live and the songs visitors send show the generated motion.
 | `assets/` | G1 model from the Unitree MJCF (BSD-3-Clause): `g1.json` (tree) and `g1_meshes.bin` (int16 meshes) |
 | `clips/manifest.json`, `clips/*.bin` | One entry per dance in the web demo: segments, plus 30 fps motion (root position, root quaternion, 29 joint angles) as int16 with per-channel scales |
 | `audio/*.mp3` | The audio each dance was generated from (96 kb/s) |
