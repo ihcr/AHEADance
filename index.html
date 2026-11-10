@@ -104,12 +104,17 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .hero .sub { font-size: clamp(19px, 1.9vw, 23px); color: var(--ink2); max-width: 32em; margin: 20px auto 0; line-height: 1.38; }
 .authors { margin-top: 26px; display: grid; gap: 5px; justify-items: center; }
 .author-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 22px; font-size: clamp(17px, 1.6vw, 19px); font-weight: 500; color: var(--ink); }
+.author-list a, .affil a { color: var(--ink); }
 .author-list sup, .equal sup { font-size: 0.72em; margin-left: 1px; }
 .affil { font-size: 15px; color: var(--ink); }
-.emails { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 16px; font-family: var(--mono); font-size: 12.5px; }
-.emails a { color: var(--ink2); }
 .equal { font-size: 13px; color: var(--ink2); }
-.cta { display: flex; gap: 28px; justify-content: center; align-items: center; margin-top: 30px; flex-wrap: wrap; }
+.cta { display: flex; gap: 12px; justify-content: center; align-items: center; margin-top: 30px; flex-wrap: wrap; }
+.btn-res { display: inline-flex; align-items: center; gap: 7px; background: var(--fill); color: var(--ink); border-radius: 999px; padding: 12px 20px; font-size: 17px; font-weight: 500; }
+.btn-res:hover { text-decoration: none; background: var(--hair); }
+.btn-res svg { width: 18px; height: 18px; flex: none; fill: currentColor; }
+.btn-res.soon { color: var(--ink2); cursor: default; }
+.btn-res.soon:hover { background: var(--fill); }
+.btn-res small { font-size: 12px; font-weight: 500; color: var(--ink2); }
 .btn-blue { background: var(--blue); color: var(--blue-ink); border-radius: 999px; padding: 12px 24px; font-size: 17px; font-weight: 500; }
 .btn-blue:hover { text-decoration: none; filter: brightness(1.08); }
 .film-wrap { padding-block: 52px 0; }
@@ -374,23 +379,21 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
     <p class="sub">A humanoid robot that improvises its dance as the music plays, in the music's own style.</p>
     <div class="authors">
       <p class="author-list">
-        <span>Tianhu Peng<sup>*</sup></span>
-        <span>Yukun Wang<sup>*</sup></span>
-        <span>Lingfan Bao</span>
-        <span>Yiyang Jia</span>
-        <span>Chengxu Zhou</span>
+        <span><a href="mailto:tianhu.peng.24@ucl.ac.uk">Tianhu Peng</a><sup>*</sup></span>
+        <span><a href="mailto:lambert.wang.23@ucl.ac.uk">Yukun Wang</a><sup>*</sup></span>
+        <span><a href="mailto:lingfan.bao.24@ucl.ac.uk">Lingfan Bao</a></span>
+        <span><a href="mailto:yiyang.jia.24@ucl.ac.uk">Yiyang Jia</a></span>
+        <span><a href="mailto:chengxu.zhou@ucl.ac.uk">Chengxu Zhou</a></span>
       </p>
-      <p class="affil">UCL Humanoid Robotics Lab</p>
-      <p class="emails">
-        <a href="mailto:tianhu.peng.24@ucl.ac.uk">tianhu.peng.24@ucl.ac.uk</a>
-        <a href="mailto:lambert.wang.23@ucl.ac.uk">lambert.wang.23@ucl.ac.uk</a>
-        <a href="mailto:lingfan.bao.24@ucl.ac.uk">lingfan.bao.24@ucl.ac.uk</a>
-        <a href="mailto:yiyang.jia.24@ucl.ac.uk">yiyang.jia.24@ucl.ac.uk</a>
-        <a href="mailto:chengxu.zhou@ucl.ac.uk">chengxu.zhou@ucl.ac.uk</a>
-      </p>
+      <p class="affil"><a href="https://ucl-humanoid.github.io/" target="_blank" rel="noopener">UCL Humanoid Robotics Lab</a></p>
       <p class="equal"><sup>*</sup>Equal contribution</p>
     </div>
     <div class="cta">
+      <a class="btn-res" href="paper/AHEADance.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm7 1.5V9h5.5L13 3.5z"/></svg>PDF</a>
+      <!-- arXiv: replace this span with <a class="btn-res" href="https://arxiv.org/abs/ID" target="_blank" rel="noopener"> once the paper is listed -->
+      <span class="btn-res soon" aria-disabled="true" title="Coming soon"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm2 4v2h8V7H8zm0 4v2h8v-2H8zm0 4v2h5v-2H8z"/></svg>arXiv <small>soon</small></span>
+      <a class="btn-res" href="https://youtu.be/WqwX6balBUI" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/></svg>YouTube</a>
+      <span class="btn-res soon" aria-disabled="true" title="Coming soon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.2-.4-.6-1.6 0-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.6.2 2.8.1 3.2.8.8 1.3 1.9 1.3 3.2 0 4.6-2.8 5.6-5.5 5.9.5.4.9 1.1.9 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg>Code <small>soon</small></span>
       <a class="btn-blue" href="#go-live">Try it live</a>
     </div>
   </header>
