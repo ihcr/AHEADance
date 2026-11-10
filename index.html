@@ -213,6 +213,16 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .progress .seg { position: absolute; top: 0; bottom: 0; }
 .seg.silence { background: repeating-linear-gradient(135deg, transparent 0 3px, color-mix(in srgb, var(--hatch) 55%, transparent) 3px 4px); }
 .progress .fill { position: absolute; left: 0; top: 0; bottom: 0; background: color-mix(in srgb, var(--ink) 25%, transparent); width: 0; }
+/* the bar can be dragged (user 11-10): an 8 px band above and below it takes the pointer, the layout is unchanged;
+   a knob shows on hover, focus and drag (always on touch screens). Live sessions cannot be dragged. */
+.scrub { position: relative; padding-block: 8px; margin-block: -8px; cursor: pointer; touch-action: none; outline: none; }
+.scrub.off { cursor: default; }
+.knob { position: absolute; top: 50%; left: 0; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: #ffffff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.14), 0 1px 4px rgba(0, 0, 0, 0.3); opacity: 0; transition: opacity 0.15s ease; pointer-events: none; }
+.scrub:hover .knob, .scrub.dragging .knob, .scrub:focus-visible .knob { opacity: 1; }
+@media (hover: none) { .knob { opacity: 1; } }
+.scrub.off .knob { display: none; }
+.scrub:focus-visible .progress { outline: 2px solid var(--blue); outline-offset: 2px; }
 .under { display: flex; gap: 8px 20px; align-items: baseline; justify-content: space-between; flex-wrap: wrap; padding-inline: 8px; }
 .hint { color: var(--ink2); font-size: 15px; min-height: 1.47em; max-width: 60ch; }
 .link { background: none; border: 0; padding: 0; color: var(--blue); font-size: 15px; }
@@ -406,7 +416,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
         <span><a href="https://ramseypengtianhu.github.io/Tianhu-Personal-Page" target="_blank" rel="noopener">Tianhu Peng</a><sup>*</sup></span>
         <span><a href="https://lbtwyk.github.io/" target="_blank" rel="noopener">Yukun Wang</a><sup>*</sup></span>
         <span><a href="https://lingfanb.github.io/" target="_blank" rel="noopener">Lingfan Bao</a></span>
-        <span>Yiyang Jia</span>
+        <span><a href="https://github.com/EthanJia0627" target="_blank" rel="noopener">Yiyang Jia</a></span>
         <span><a href="https://profiles.ucl.ac.uk/98020-chengxu-zhou" target="_blank" rel="noopener">Chengxu Zhou</a></span>
       </p>
       <p class="affil"><a href="https://ucl-humanoid.github.io/" target="_blank" rel="noopener">UCL Humanoid Robotics Lab</a></p>
@@ -583,7 +593,10 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
               <h2 id="title">—</h2>
               <span class="time" id="time">0:00 / 0:00</span>
             </div>
-            <div class="progress" id="progress" aria-hidden="true"></div>
+            <div class="scrub" id="scrub" role="slider" tabindex="0" aria-label="Position in the music" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" aria-valuetext="0:00">
+              <div class="progress" id="progress"></div>
+              <div class="knob" id="knob" aria-hidden="true"></div>
+            </div>
           </div>
         </div>
         <div class="under">
@@ -735,7 +748,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
 } }
 </script>
-<script type="module" src="js/app.js?v=20261110a"></script>   <!-- bump v with every change to js/ (browsers cache 10 min) -->
+<script type="module" src="js/app.js?v=20261110b"></script>   <!-- bump v with every change to js/ (browsers cache 10 min) -->
 
 </body>
 </html>

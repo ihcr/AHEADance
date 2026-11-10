@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { forwardKinematics } from './fk.js?v=20261110a';
-import { drawStrip, analyseMusic } from './strip.js?v=20261110a';
+import { forwardKinematics } from './fk.js?v=20261110b';
+import { drawStrip, analyseMusic } from './strip.js?v=20261110b';
 
 // Offline version: replays of dances the deployed model generated. Each programme = one audio file (exactly what the
 // model heard) + its generated motion. The robot is shown 1.24 s behind the music, as on the real robot.
@@ -467,7 +467,15 @@ function updateUI(t, force = false) {
   const end = endOf(p);
   $('time').textContent = `${mmss(t)} / ${mmss(end)}`;
   $('fill').style.width = `${(t / end) * 100}%`;
+  $('knob').style.left = `${(t / end) * 100}%`;
   $('playhead').style.left = `calc(4.5rem + 10px + (100% - 4.5rem - 10px) * ${t / end})`;
+  const sc = $('scrub'), said = `${Math.floor(t)}|${end}`;
+  if (sc.dataset.said !== said) {        // the slider's value for screen readers, once a second
+    sc.dataset.said = said;
+    sc.setAttribute('aria-valuemax', end.toFixed(1));
+    sc.setAttribute('aria-valuenow', t.toFixed(1));
+    sc.setAttribute('aria-valuetext', `${mmss(t)} of ${mmss(end)}`);
+  }
 }
 
 // ---------------------------------------------------------------- live mode (js/live.js runs the session)
@@ -482,6 +490,8 @@ function liveBegin(ctrl) {
   liveLookAt = 0;
   $('axis').dataset.span = '';
   $('over').hidden = true;
+  $('scrub').classList.add('off');       // a live session cannot be dragged
+  $('scrub').setAttribute('aria-disabled', 'true');
   $('stage-hint').hidden = true;
   if (ctrl.setView) ctrl.setView(view);
   viewSwitch();
@@ -490,6 +500,8 @@ function liveBegin(ctrl) {
 function liveEnd() {
   L = null;
   $('over').hidden = false;
+  $('scrub').classList.remove('off');
+  $('scrub').removeAttribute('aria-disabled');
   if (P.prog) { programmeChanged(); updateUI(now(), true); }
   if (P.motion) { drawDetails(); poseAt(now()); follow(1); }
   $('axis').dataset.span = '';
@@ -868,6 +880,46 @@ function renderLibrary() {
   tl.addEventListener('pointercancel', () => { dragging = false; });
 })();
 
+// the player's progress bar can be dragged (user 11-10): the music holds while the bar is held, the robot and the strip
+// follow the pointer, and playing resumes from the new place on release if it was playing; arrows step 5 s
+(function bindProgress() {
+  const sc = $('scrub');
+  let drag = null;                       // { resume } while the bar is held
+  const at = (e) => {
+    const r = $('progress').getBoundingClientRect();
+    return Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1) * endOf(P.prog);
+  };
+  sc.addEventListener('pointerdown', (e) => {
+    if (!P.prog || L || e.button !== 0) return;
+    e.preventDefault();
+    drag = { resume: P.running };
+    pause();
+    sc.classList.add('dragging');
+    sc.setPointerCapture(e.pointerId);
+    seek(at(e));
+  });
+  sc.addEventListener('pointermove', (e) => { if (drag) seek(at(e)); });
+  const release = () => {
+    if (!drag) return;
+    const { resume } = drag;
+    drag = null;
+    sc.classList.remove('dragging');
+    if (resume && P.t < endOf(P.prog)) play(P.t);
+    lastUI = '';
+  };
+  sc.addEventListener('pointerup', release);
+  sc.addEventListener('pointercancel', release);
+  sc.addEventListener('keydown', (e) => {
+    if (!P.prog || L) return;
+    const step = { ArrowLeft: -5, ArrowDown: -5, ArrowRight: 5, ArrowUp: 5, PageDown: -15, PageUp: 15 }[e.key];
+    const t = step !== undefined ? now() + step : e.key === 'Home' ? 0 : e.key === 'End' ? endOf(P.prog) : null;
+    if (t === null) return;
+    e.preventDefault();
+    seek(t);
+    lastUI = '';
+  });
+})();
+
 // ---------------------------------------------------------------- loop and start
 function loop() {
   requestAnimationFrame(loop);
@@ -981,7 +1033,7 @@ async function start() {
     P.running ? pause() : play();
   });
   showSoundStatus();
-  import('./requests.js?v=20261110a').then((m) => {
+  import('./requests.js?v=20261110b').then((m) => {
     stopOthers = m.initRequests({
       add(prog, s) {
         manifest.songs[s.id] = s;
@@ -1009,7 +1061,7 @@ async function start() {
   document.querySelectorAll('#view-switch button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
   if (location.hash === '#live') openLive();
   let liveCtl = null;
-  import('./live.js?v=20261110a').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd, views: () => { viewSwitch(); lastUI = ''; } }); }).catch(fail);
+  import('./live.js?v=20261110b').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd, views: () => { viewSwitch(); lastUI = ''; } }); }).catch(fail);
   $('over').addEventListener('click', () => { pause(); seek(0); });
   // hook for automated checks (tools/page_check.mjs)
   window.aheadance = { seek, play: () => play(), pause, now, rootWorld, ready: true, live: () => liveCtl,
