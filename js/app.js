@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { forwardKinematics } from './fk.js?v=20261105m';
-import { drawStrip, analyseMusic } from './strip.js?v=20261105m';
+import { forwardKinematics } from './fk.js?v=20261110a';
+import { drawStrip, analyseMusic } from './strip.js?v=20261110a';
 
 // Offline version: replays of dances the deployed model generated. Each programme = one audio file (exactly what the
 // model heard) + its generated motion. The robot is shown 1.24 s behind the music, as on the real robot.
@@ -913,14 +913,18 @@ videos.forEach((v) => v.addEventListener('play', () => { if (!(v.id === 'film' &
 // unmuted film is paused), so then it plays muted ("held": muted by the browser, not by the visitor) and its sound
 // comes on at the first click or key while the film is on screen. A click on the picture itself turns the sound on
 // instead of pausing (Chrome pauses on a click); a click on the control bar is left to the controls.
+// While held, a "Turn on sound" button shows on the film (user 11-10), so visitors know the sound is there.
 const film = $('film');
+const soundBtn = $('film-sound');
 let held = false;
-film.addEventListener('volumechange', () => { if (!film.muted) held = false; if (!film.muted && !film.paused) takeSound(film); });
+function setHeld(v) { held = v; soundBtn.hidden = !v; }
+soundBtn.addEventListener('click', () => soundNow());
+film.addEventListener('volumechange', () => { if (!film.muted) setHeld(false); if (!film.muted && !film.paused) takeSound(film); });
 let filmSeen = true;
 new IntersectionObserver(([e]) => { filmSeen = e.intersectionRatio >= 0.3; }, { threshold: [0, 0.3, 1] }).observe(film);
 const kinds = ['pointerdown', 'pointerup', 'keydown'];
 function soundNow() {                      // inside a click or key: the browser now allows sound
-  held = false;
+  setHeld(false);
   kinds.forEach((k) => document.removeEventListener(k, onGesture, true));
   film.muted = false;
   if (film.paused) film.play().catch(() => { film.muted = true; film.play().catch(() => {}); });
@@ -932,13 +936,14 @@ function onGesture(e) {
         && !(navigator.userActivation && !navigator.userActivation.isActive)) soundNow();   // click): sound here
     return;
   }
-  if (!held || !film.muted || film.paused) { held = false; kinds.forEach((k) => document.removeEventListener(k, onGesture, true)); return; }
+  // a film paused on screen was paused by the visitor; off screen, phones pause a muted film themselves until it is back
+  if (!held || !film.muted || (film.paused && filmSeen)) { setHeld(false); kinds.forEach((k) => document.removeEventListener(k, onGesture, true)); return; }
   if (navigator.userActivation && !navigator.userActivation.isActive) return;   // e.g. a touch that scrolls
   if (filmSeen) soundNow();
 }
 film.addEventListener('click', (e) => {
   if (!held) return;
-  if (inBar(e)) { held = false; return; }                      // the control bar: the controls decide
+  if (inBar(e)) { setHeld(false); return; }                    // the control bar: the controls decide
   e.preventDefault();                       // no pause: this click is for the sound
   soundNow();
 });
@@ -946,7 +951,7 @@ if (reduceMotion) { film.removeAttribute('autoplay'); film.pause(); }
 else {
   const quiet = () => {
     film.muted = true;
-    held = true;
+    setHeld(true);
     film.play().catch(() => {});
     kinds.forEach((k) => document.addEventListener(k, onGesture, true));
   };
@@ -976,7 +981,7 @@ async function start() {
     P.running ? pause() : play();
   });
   showSoundStatus();
-  import('./requests.js?v=20261105m').then((m) => {
+  import('./requests.js?v=20261110a').then((m) => {
     stopOthers = m.initRequests({
       add(prog, s) {
         manifest.songs[s.id] = s;
@@ -1004,7 +1009,7 @@ async function start() {
   document.querySelectorAll('#view-switch button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
   if (location.hash === '#live') openLive();
   let liveCtl = null;
-  import('./live.js?v=20261105m').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd, views: () => { viewSwitch(); lastUI = ''; } }); }).catch(fail);
+  import('./live.js?v=20261110a').then((m) => { liveCtl = m.initLive({ begin: liveBegin, end: liveEnd, views: () => { viewSwitch(); lastUI = ''; } }); }).catch(fail);
   $('over').addEventListener('click', () => { pause(); seek(0); });
   // hook for automated checks (tools/page_check.mjs)
   window.aheadance = { seek, play: () => play(), pause, now, rootWorld, ready: true, live: () => liveCtl,

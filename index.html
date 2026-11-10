@@ -121,6 +121,17 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .film { position: relative; max-width: var(--wide); margin: 0 auto; }
 .film video { width: 100%; aspect-ratio: 16 / 9; border-radius: var(--r-lg); display: block; background: var(--media); object-fit: cover; }
 .film-cap { text-align: center; color: var(--ink2); font-size: 15px; margin: 16px auto 0; max-width: 46em; }
+/* shown while the browser keeps the film muted (js/app.js). Top centre: on the seam between the two upper tiles of the
+   2x2 film, clear of the robots (tile centres), the style labels (tile bottom left) and the control bar */
+.film-sound {
+  position: absolute; left: 50%; top: 22px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 8px;
+  border: 0; border-radius: 999px; padding: 11px 20px 11px 16px; background: var(--blue); color: var(--blue-ink); font-size: 16px;
+  font-weight: 500; white-space: nowrap; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28); transition: transform 0.15s ease;
+}
+.film-sound:hover { filter: brightness(1.08); }
+.film-sound:active { transform: translateX(-50%) scale(0.96); }
+.film-sound svg { width: 20px; height: 20px; flex: none; fill: currentColor; }
+.film-sound .short { display: none; }
 
 /* sections */
 .band { background: var(--band); }
@@ -346,13 +357,17 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
 @media (max-width: 734px) {
   .hero { padding-top: 44px; }
   .film video { border-radius: 20px; }
+  .film-sound { top: 10px; gap: 6px; padding: 7px 14px 7px 11px; font-size: 14px; }   /* short label: clear of the robots down to 320 px */
+  .film-sound svg { width: 16px; height: 16px; }
+  .film-sound .long { display: none; }
+  .film-sound .short { display: inline; }
   .stage { aspect-ratio: 1 / 1; border-radius: 22px; }
   .steps { grid-template-columns: minmax(0, 1fr); }
   .facts { grid-template-columns: minmax(0, 1fr); }
   .mark span { display: none; }
   .look { padding: 22px 16px 18px; }
 }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .big, .row { transition: none; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .big, .row, .film-sound { transition: none; } }
 </style>
 </head>
 <body>
@@ -401,6 +416,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
   <section class="film-wrap gutter" aria-label="Film">
     <figure class="film">
       <video id="film" src="media/styles_grid.mp4" poster="media/styles_grid.jpg" autoplay muted loop playsinline controls preload="auto"></video>
+      <button class="film-sound" id="film-sound" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4.5v15L7 15H3z"/><path d="M16 9.5l5 5m0-5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="long">Turn on sound</span><span class="short">Unmute</span></button>
     </figure>
     <p class="film-cap">A Unitree G1 dancing to eight songs in seven styles, each played from an audio file. One model for all of them; it is never told the style.</p>
   </section>
@@ -710,7 +726,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
 } }
 </script>
-<script type="module" src="js/app.js?v=20261105m"></script>   <!-- bump v with every change to js/ (browsers cache 10 min) -->
+<script type="module" src="js/app.js?v=20261110a"></script>   <!-- bump v with every change to js/ (browsers cache 10 min) -->
 
 </body>
 </html>
