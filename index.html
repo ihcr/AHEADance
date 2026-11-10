@@ -103,9 +103,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .hero h1 { font-size: clamp(46px, 7.4vw, 88px); line-height: 1.03; margin-top: 10px; letter-spacing: -0.035em; }
 .hero .sub { font-size: clamp(19px, 1.9vw, 23px); color: var(--ink2); max-width: 32em; margin: 20px auto 0; line-height: 1.38; }
 .authors { margin-top: 26px; display: grid; gap: 5px; justify-items: center; }
-.author-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 26px; font-size: clamp(19px, 1.9vw, 23px); font-weight: 500; color: var(--ink); }
+.author-list { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 4px 26px; font-size: clamp(19px, 1.9vw, 23px); font-weight: 500; color: var(--ink); }
 .author-list a, .affil a { color: var(--ink); }
-.author-list sup, .equal sup { font-size: 0.72em; margin-left: 1px; }
+/* the asterisk is raised by moving it, not by vertical-align: super, so it does not make its line taller and the
+   starred names stay level with the others */
+.author-list sup, .equal sup { font-size: 0.72em; margin-left: 1px; line-height: 0; vertical-align: baseline; position: relative; top: -0.5em; }
 .affil { font-size: clamp(19px, 1.9vw, 23px); color: var(--ink); }
 .equal { font-size: 13px; color: var(--ink2); }
 .cta { display: flex; gap: 12px; justify-content: center; align-items: center; margin-top: 30px; flex-wrap: wrap; }
@@ -401,11 +403,11 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
     <p class="sub">A humanoid robot that improvises its dance as the music plays, in the music's own style.</p>
     <div class="authors">
       <p class="author-list">
-        <span><a href="mailto:tianhu.peng.24@ucl.ac.uk">Tianhu Peng</a><sup>*</sup></span>
-        <span><a href="mailto:lambert.wang.23@ucl.ac.uk">Yukun Wang</a><sup>*</sup></span>
-        <span><a href="mailto:lingfan.bao.24@ucl.ac.uk">Lingfan Bao</a></span>
-        <span><a href="mailto:yiyang.jia.24@ucl.ac.uk">Yiyang Jia</a></span>
-        <span><a href="mailto:chengxu.zhou@ucl.ac.uk">Chengxu Zhou</a></span>
+        <span><a href="https://ramseypengtianhu.github.io/Tianhu-Personal-Page" target="_blank" rel="noopener">Tianhu Peng</a><sup>*</sup></span>
+        <span>Yukun Wang<sup>*</sup></span>
+        <span><a href="https://lingfanb.github.io/" target="_blank" rel="noopener">Lingfan Bao</a></span>
+        <span>Yiyang Jia</span>
+        <span><a href="https://profiles.ucl.ac.uk/98020-chengxu-zhou" target="_blank" rel="noopener">Chengxu Zhou</a></span>
       </p>
       <p class="affil"><a href="https://ucl-humanoid.github.io/" target="_blank" rel="noopener">UCL Humanoid Robotics Lab</a></p>
       <p class="equal"><sup>*</sup>Equal contribution</p>
