@@ -149,6 +149,14 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .section h2 { font-size: clamp(36px, 5vw, 56px); line-height: 1.07; text-align: center; margin-top: 8px; }
 .lead { font-size: clamp(17px, 1.6vw, 21px); color: var(--ink2); text-align: center; max-width: var(--copy); margin: 18px auto 0; line-height: 1.42; }
 .lead strong { color: var(--ink); font-weight: 500; }
+/* citation: the arXiv BibTeX in a code block with a copy button (user 11-11) */
+.bibtex { position: relative; max-width: 860px; margin: 36px auto 0; }
+.bibtex pre { margin: 0; background: var(--media); border-radius: 20px; padding: 24px 28px; overflow-x: auto; font-family: var(--mono);
+  font-size: 13.5px; line-height: 1.6; color: var(--ink); white-space: pre; tab-size: 2; }
+.bibtex .copy { position: absolute; top: 12px; right: 12px; background: var(--fill); color: var(--ink); border: 0; border-radius: 999px;
+  padding: 6px 14px; font-size: 13px; font-weight: 500; }
+.bibtex .copy:hover { background: var(--hair); }
+@media (max-width: 734px) { .bibtex pre { padding: 52px 18px 20px; font-size: 12px; } }
 
 /* real-robot clips */
 .clips { max-width: var(--wide); margin: 56px auto 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
@@ -416,7 +424,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
         <span><a href="https://ramseypengtianhu.github.io/Tianhu-Personal-Page" target="_blank" rel="noopener">Tianhu Peng</a><sup>*</sup></span>
         <span><a href="https://lbtwyk.github.io/" target="_blank" rel="noopener">Yukun Wang</a><sup>*</sup></span>
         <span><a href="https://lingfanb.github.io/" target="_blank" rel="noopener">Lingfan Bao</a></span>
-        <span><a href="https://github.com/EthanJia0627" target="_blank" rel="noopener">Yiyang Jia</a></span>
+        <span><a href="https://ethanjia0627.github.io/" target="_blank" rel="noopener">Yiyang Jia</a></span>
         <span><a href="https://profiles.ucl.ac.uk/98020-chengxu-zhou" target="_blank" rel="noopener">Chengxu Zhou</a></span>
       </p>
       <p class="affil"><a href="https://ucl-humanoid.github.io/" target="_blank" rel="noopener">UCL Humanoid Robotics Lab</a></p>
@@ -424,8 +432,7 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
     </div>
     <div class="cta">
       <a class="btn-res" href="paper/AHEADance.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm7 1.5V9h5.5L13 3.5z"/></svg>PDF</a>
-      <!-- arXiv: replace this span with <a class="btn-res" href="https://arxiv.org/abs/ID" target="_blank" rel="noopener"> once the paper is listed -->
-      <span class="btn-res soon" aria-disabled="true" title="Coming soon"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm2 4v2h8V7H8zm0 4v2h8v-2H8zm0 4v2h5v-2H8z"/></svg>arXiv <small>soon</small></span>
+      <a class="btn-res" href="https://arxiv.org/abs/2611.13370" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm2 4v2h8V7H8zm0 4v2h8v-2H8zm0 4v2h5v-2H8z"/></svg>arXiv</a>
       <a class="btn-res" href="https://youtu.be/WqwX6balBUI" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/></svg>YouTube</a>
       <span class="btn-res soon" aria-disabled="true" title="Coming soon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.2-.4-.6-1.6 0-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.6.2 2.8.1 3.2.8.8 1.3 1.9 1.3 3.2 0 4.6-2.8 5.6-5.5 5.9.5.4.9 1.1.9 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg>Code <small>soon</small></span>
       <a class="btn-blue" href="#go-live">Try it live</a>
@@ -732,6 +739,24 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
       </div>
     </div>
   </section>
+
+  <section class="section gutter" id="cite" aria-labelledby="cite-h">
+    <p class="eyebrow">BibTeX</p>
+    <h2 id="cite-h">Cite AHEADance.</h2>
+    <p class="lead">If AHEADance is useful in your work, we would be glad if you cite our paper.</p>
+    <div class="bibtex">
+      <pre id="bibtex">@misc{peng2026aheadance,
+  title={AHEADance: Anticipatory Humanoid Dance from Streaming Audio},
+  author={Tianhu Peng and Yukun Wang and Lingfan Bao and Yiyang Jia and Chengxu Zhou},
+  year={2026},
+  eprint={2611.13370},
+  archivePrefix={arXiv},
+  primaryClass={cs.RO},
+  url={https://arxiv.org/abs/2611.13370}
+}</pre>
+      <button class="copy" id="bib-copy" type="button">Copy</button>
+    </div>
+  </section>
 </main>
 
 <footer class="gutter">
@@ -741,6 +766,16 @@ footer .inner { max-width: var(--mid); display: grid; gap: 6px; border-top: 1px 
     <p>Music: excerpts from the FineDance dataset (Li et al., ICCV 2023), and one melody made with Suno for this project, in three styles.</p>
   </div>
 </footer>
+
+<script>
+// BibTeX copy button; where the clipboard is not allowed, the entry is selected for the visitor to copy
+document.getElementById('bib-copy').addEventListener('click', async (e) => {
+  const b = e.currentTarget, pre = document.getElementById('bibtex');
+  try { await navigator.clipboard.writeText(pre.textContent); b.textContent = 'Copied'; }
+  catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+  setTimeout(() => { b.textContent = 'Copy'; }, 1600);
+});
+</script>
 
 <script type="importmap">
 { "imports": {
